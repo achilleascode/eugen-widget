@@ -521,8 +521,9 @@
 <body>
     <!-- Chat Widget Button -->
     <button id="chat-widget-button" aria-label="Chat oeffnen">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <rect x="9.5" y="4" width="5" height="12" rx="2.5" fill="white"/>
+            <circle cx="12" cy="20" r="2.2" fill="#CF003D"/>
         </svg>
         <span id="notification-badge">1</span>
     </button>
@@ -533,7 +534,9 @@
             <div class="header-left">
                 <div class="header-bot-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-                        <text x="7" y="20" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="white">!</text>
+                        <circle cx="12" cy="12" r="12" fill="#14E1A7"/>
+                        <rect x="10.5" y="5" width="3" height="10" rx="1.5" fill="#000000"/>
+                        <circle cx="12" cy="18.5" r="1.8" fill="#CF003D"/>
                     </svg>
                 </div>
                 <div class="header-info">
@@ -771,7 +774,7 @@
 
         // Create bot icon SVG element (Kurzlogo "!" – kein Avatar laut Manual)
         function createBotIconHTML() {
-            return `<div class="bot-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><text x="7" y="18" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="white">!</text></svg></div>`;
+            return `<div class="bot-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#14E1A7"/><rect x="10.5" y="5" width="3" height="10" rx="1.5" fill="#000000"/><circle cx="12" cy="18.5" r="1.8" fill="#CF003D"/></svg></div>`;
         }
 
         // Render Messages
