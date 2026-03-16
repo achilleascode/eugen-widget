@@ -94,6 +94,7 @@
             overflow: hidden;
             z-index: 1001;
             animation: slideUp 0.3s ease;
+            transition: width 0.3s ease, height 0.3s ease, bottom 0.3s ease, max-height 0.3s ease;
         }
 
         #chat-widget-window.open {
@@ -172,11 +173,16 @@
             display: inline-block;
         }
 
-        #chat-close-button {
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .header-btn {
             background: none;
             border: none;
             color: #666;
-            font-size: 24px;
             cursor: pointer;
             width: 30px;
             height: 30px;
@@ -185,10 +191,38 @@
             justify-content: center;
             border-radius: 50%;
             transition: background 0.2s ease;
+            padding: 0;
         }
 
-        #chat-close-button:hover {
+        .header-btn:hover {
             background: rgba(0, 0, 0, 0.05);
+        }
+
+        .header-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: #666;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        #chat-close-button {
+            font-size: 24px;
+        }
+
+        #chat-close-button svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Expanded State */
+        #chat-widget-window.expanded {
+            width: 600px;
+            height: 80vh;
+            max-height: 800px;
+            bottom: 20px;
         }
 
         /* Messages Container */
@@ -321,10 +355,10 @@
         }
 
         .message.human .message-bubble {
-            background: #f0f8ff;
-            border: 1px solid #b0d4f1;
+            background: rgba(20, 225, 167, 0.12);
+            border: 1px solid rgba(20, 225, 167, 0.25);
             border-bottom-left-radius: 4px;
-            color: black;
+            color: #000000;
         }
 
         .message-label {
@@ -340,15 +374,14 @@
             color: #14E1A7;
         }
 
-        .message.bot .message-label {
-            text-align: left;
-            color: #555;
-        }
-
+        .message.bot .message-label,
         .message.human .message-label {
             text-align: left;
-            color: #3498db;
+            color: #555;
+            padding-left: 36px; /* align with bubble (28px icon + 8px gap) */
         }
+
+        /* .message.human .message-label is merged with .message.bot .message-label above */
 
         .message-timestamp {
             font-size: 11px;
@@ -364,6 +397,7 @@
         .message.bot .message-timestamp,
         .message.human .message-timestamp {
             text-align: left;
+            padding-left: 36px; /* align with bubble */
         }
 
         /* Input Area */
@@ -469,6 +503,18 @@
                 bottom: 100px;
                 right: 20px;
             }
+
+            #chat-widget-window.expanded {
+                width: calc(100vw - 20px);
+                height: calc(100vh - 40px);
+                bottom: 20px;
+                right: 10px;
+                max-height: none;
+            }
+
+            #chat-expand-button {
+                display: none; /* hide on mobile – already large enough */
+            }
         }
     </style>
 </head>
@@ -498,7 +544,22 @@
                     </div>
                 </div>
             </div>
-            <button id="chat-close-button" aria-label="Chat schliessen">&times;</button>
+            <div class="header-right">
+                <button id="chat-expand-button" class="header-btn" aria-label="Chat vergroessern">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <polyline points="9 21 3 21 3 15"></polyline>
+                        <line x1="21" y1="3" x2="14" y2="10"></line>
+                        <line x1="3" y1="21" x2="10" y2="14"></line>
+                    </svg>
+                </button>
+                <button id="chat-close-button" class="header-btn" aria-label="Chat schliessen">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
         </div>
         <div id="chat-messages"></div>
         <div id="chat-input-area">
@@ -533,6 +594,7 @@
         const widgetButton = document.getElementById('chat-widget-button');
         const widgetWindow = document.getElementById('chat-widget-window');
         const closeButton = document.getElementById('chat-close-button');
+        const expandButton = document.getElementById('chat-expand-button');
         const messagesContainer = document.getElementById('chat-messages');
         const inputField = document.getElementById('chat-input');
         const sendButton = document.getElementById('chat-send-button');
@@ -690,13 +752,18 @@
                 return div.innerHTML;
             };
 
-            const escapedText = escapeHtml(text);
+            let html = escapeHtml(text);
+
+            // Basic Markdown: **bold**
+            html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+            // Basic Markdown: list items (- item)
+            html = html.replace(/^- (.+)$/gm, '<span style="display:block;padding-left:12px;">• $1</span>');
 
             // Regex to match URLs starting with http:// or https://
             const urlRegex = /(https?:\/\/[^\s<>"]+)/gi;
 
-            return escapedText.replace(urlRegex, (url) => {
-                // Remove trailing punctuation that's not part of the URL
+            return html.replace(urlRegex, (url) => {
                 let cleanUrl = url.replace(/[.,;:!?)\]]+$/, '');
                 return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" style="color: #14E1A7; text-decoration: underline; word-break: break-all;">${cleanUrl}</a>`;
             });
@@ -743,6 +810,8 @@
                 labelDiv.className = 'message-label';
                 if (messageType === 'bot') {
                     labelDiv.textContent = 'eugen!';
+                } else if (messageType === 'human') {
+                    labelDiv.textContent = 'eugen! Team';
                 } else if (messageType === 'user') {
                     labelDiv.textContent = 'Du';
                 } else {
@@ -763,9 +832,20 @@
                 timestampDiv.className = 'message-timestamp';
                 timestampDiv.textContent = formatTimestamp(msg.timestamp);
 
-                messageDiv.appendChild(labelDiv);
-                messageDiv.appendChild(bubbleDiv);
-                messageDiv.appendChild(timestampDiv);
+                // Bot and human messages: wrap bubble with icon row
+                if (messageType === 'bot' || messageType === 'human') {
+                    const row = document.createElement('div');
+                    row.className = 'bot-message-row';
+                    row.innerHTML = createBotIconHTML();
+                    row.appendChild(bubbleDiv);
+                    messageDiv.appendChild(labelDiv);
+                    messageDiv.appendChild(row);
+                    messageDiv.appendChild(timestampDiv);
+                } else {
+                    messageDiv.appendChild(labelDiv);
+                    messageDiv.appendChild(bubbleDiv);
+                    messageDiv.appendChild(timestampDiv);
+                }
                 messagesContainer.appendChild(messageDiv);
             });
 
@@ -865,7 +945,8 @@
                 idleGreetingTimer = null;
             }
 
-            // Hide starter buttons if visible
+            // Hide starter buttons permanently
+            sessionStorage.setItem('eugen_buttons_used', 'true');
             const starterContainer = document.getElementById('starter-buttons-container');
             if (starterContainer) {
                 starterContainer.remove();
@@ -958,8 +1039,14 @@
             timestampDiv.className = 'message-timestamp';
             timestampDiv.textContent = formatTimestamp(greetingTimestamp);
 
+            // Use bot-message-row with icon
+            const row = document.createElement('div');
+            row.className = 'bot-message-row';
+            row.innerHTML = createBotIconHTML();
+            row.appendChild(bubbleDiv);
+
             messageDiv.appendChild(labelDiv);
-            messageDiv.appendChild(bubbleDiv);
+            messageDiv.appendChild(row);
             messageDiv.appendChild(timestampDiv);
             messagesContainer.appendChild(messageDiv);
 
@@ -969,26 +1056,27 @@
 
         // Append starter buttons
         function appendStarterButtons() {
-            // Don't show if already interacted
+            // Don't show if already interacted or if messages exist
             const existingStarter = document.getElementById('starter-buttons-container');
             if (existingStarter) return;
+            if (sessionStorage.getItem('eugen_buttons_used') === 'true') return;
 
             const container = document.createElement('div');
             container.id = 'starter-buttons-container';
             container.className = 'starter-buttons';
 
             const buttons = [
-                { emoji: '\u{1F3E0}', text: 'Wohnung finden' },
-                { emoji: '\u{1F4C5}', text: 'Besichtigung buchen' },
-                { emoji: '\u{1F4DD}', text: 'Bewerbung f\u00FCr deine Traumwohnung' }
+                'Wohnung finden',
+                'Besichtigung buchen',
+                'Bewerbung f\u00FCr deine Traumwohnung'
             ];
 
-            buttons.forEach(btn => {
+            buttons.forEach(text => {
                 const button = document.createElement('button');
                 button.className = 'starter-btn';
-                button.textContent = `${btn.emoji} ${btn.text}`;
+                button.textContent = text;
                 button.addEventListener('click', () => {
-                    sendMessage(`${btn.emoji} ${btn.text}`);
+                    sendMessage(text);
                 });
                 container.appendChild(button);
             });
@@ -1019,11 +1107,12 @@
         // Notify parent window of size change
         function notifyParentOfSize(isOpen) {
             if (window.parent !== window) {
+                const isExpanded = widgetWindow.classList.contains('expanded');
                 window.parent.postMessage({
                     type: 'eugen-chat-resize',
                     isOpen: isOpen,
-                    width: isOpen ? 440 : 100,
-                    height: isOpen ? 700 : 100
+                    width: isOpen ? (isExpanded ? 620 : 440) : 100,
+                    height: isOpen ? (isExpanded ? 820 : 700) : 100
                 }, '*');
             }
         }
@@ -1055,10 +1144,23 @@
 
         closeButton.addEventListener('click', () => {
             widgetWindow.classList.remove('open');
+            widgetWindow.classList.remove('expanded');
             setTimeout(() => notifyParentOfSize(false), 50);
             if (idleGreetingTimer) {
                 clearTimeout(idleGreetingTimer);
                 idleGreetingTimer = null;
+            }
+        });
+
+        expandButton.addEventListener('click', () => {
+            const isExpanded = widgetWindow.classList.toggle('expanded');
+            // Update expand icon to collapse icon and vice versa
+            if (isExpanded) {
+                expandButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
+                expandButton.setAttribute('aria-label', 'Chat verkleinern');
+            } else {
+                expandButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
+                expandButton.setAttribute('aria-label', 'Chat vergroessern');
             }
         });
 
