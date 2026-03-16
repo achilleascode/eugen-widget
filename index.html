@@ -105,10 +105,11 @@
         /* Chat Window */
         #chat-widget-window {
             position: absolute;
-            bottom: 100px;
+            bottom: 90px;
             right: 20px;
-            width: 420px;
-            height: 600px;
+            width: 380px;
+            height: 550px;
+            max-height: calc(100vh - 120px);
             background: white;
             border-radius: 16px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
@@ -117,7 +118,7 @@
             overflow: hidden;
             z-index: 1001;
             animation: slideUp 0.3s ease;
-            transition: width 0.3s ease, height 0.3s ease, bottom 0.3s ease, max-height 0.3s ease;
+            transition: width 0.3s ease, height 0.3s ease, bottom 0.3s ease;
         }
 
         #chat-widget-window.open {
@@ -242,9 +243,9 @@
 
         /* Expanded State */
         #chat-widget-window.expanded {
-            width: 600px;
+            width: 500px;
             height: 80vh;
-            max-height: 800px;
+            max-height: 85vh;
             bottom: 20px;
         }
 
@@ -495,27 +496,42 @@
             color: #10c896;
         }
 
-        /* Typing Indicator - Clock */
-        .typing-clock {
+        /* Typing Indicator - "eugen! schreibt..." */
+        .typing-indicator-text {
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 12px 16px;
+            gap: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #666;
+            font-style: italic;
         }
 
-        .typing-clock svg {
-            width: 24px;
-            height: 24px;
-            animation: tick 1s infinite;
+        .typing-indicator-text .typing-name {
+            color: #14E1A7;
+            font-weight: 600;
+            font-style: normal;
         }
 
-        @keyframes tick {
-            0%, 100% {
-                transform: rotate(0deg);
-            }
-            50% {
-                transform: rotate(6deg);
-            }
+        .typing-dots {
+            display: inline-flex;
+            gap: 3px;
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #14E1A7;
+            animation: typingBounce 1.4s infinite;
+        }
+
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingBounce {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-6px); opacity: 1; }
         }
 
         /* Mobile Responsive */
@@ -908,7 +924,7 @@
 
             const bubbleDiv = document.createElement('div');
             bubbleDiv.className = 'message-bubble';
-            bubbleDiv.innerHTML = '<div class="typing-clock"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#14E1A7"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg></div>';
+            bubbleDiv.innerHTML = '<div class="typing-indicator-text"><span class="typing-name">eugen!</span> schreibt <span class="typing-dots"><span></span><span></span><span></span></span></div>';
 
             typingDiv.appendChild(bubbleDiv);
             messagesContainer.appendChild(typingDiv);
@@ -1139,8 +1155,8 @@
                 window.parent.postMessage({
                     type: 'eugen-chat-resize',
                     isOpen: isOpen,
-                    width: isOpen ? (isExpanded ? 620 : 440) : 100,
-                    height: isOpen ? (isExpanded ? 820 : 700) : 100
+                    width: isOpen ? (isExpanded ? 520 : 400) : 100,
+                    height: isOpen ? (isExpanded ? 800 : 650) : 100
                 }, '*');
             }
         }
