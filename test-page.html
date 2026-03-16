@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eugen! Widget Testseite</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        header {
+            background: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        header svg { width: 32px; height: 32px; }
+        header h1 { font-size: 22px; font-weight: 700; }
+        header span { color: #666; font-size: 14px; }
+        .hero {
+            background: linear-gradient(135deg, #14E1A7 0%, #0fb88a 100%);
+            color: white;
+            padding: 80px 40px;
+            text-align: center;
+        }
+        .hero h2 { font-size: 36px; margin-bottom: 16px; }
+        .hero p { font-size: 18px; opacity: 0.9; max-width: 600px; margin: 0 auto; }
+        .content {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .card h3 { font-size: 20px; margin-bottom: 12px; color: #14E1A7; }
+        .card p { line-height: 1.6; color: #555; }
+        .card code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .embed-code {
+            background: #1a1a2e;
+            color: #14E1A7;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin-top: 12px;
+        }
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="14" cy="14" r="14" fill="#14E1A7"/>
+            <rect x="11" y="3.5" width="6" height="12.5" rx="3" fill="white"/>
+            <circle cx="14" cy="15.5" r="2.6" fill="#CF003D"/>
+            <circle cx="14" cy="22" r="2.6" fill="black"/>
+        </svg>
+        <div>
+            <h1>eugen!</h1>
+            <span>Widget Testseite</span>
+        </div>
+    </header>
+
+    <div class="hero">
+        <h2>Dein KI-Agent fuer die Wohnungssuche</h2>
+        <p>Teste das eugen! Chat-Widget auf dieser Seite. Klicke auf den gruenen Button rechts unten um den Chat zu oeffnen.</p>
+    </div>
+
+    <div class="content">
+        <div class="card">
+            <h3>So funktioniert's</h3>
+            <p>Das eugen! Widget wird als iframe in deine Website eingebettet. Der Chat-Button erscheint rechts unten und oeffnet bei Klick das Chat-Fenster. Der KI-Agent hilft bei der Wohnungssuche, beantwortet Fragen zu Mietrecht und begleitet durch den gesamten Anmietungsprozess.</p>
+        </div>
+
+        <div class="card">
+            <h3>Einbettung auf deiner Website</h3>
+            <p>Fuege diesen Code vor <code>&lt;/body&gt;</code> ein:</p>
+            <div class="embed-code">
+                &lt;script src="https://eugen-widget.vercel.app/embed.js"&gt;&lt;/script&gt;
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Teste diese Fragen</h3>
+            <p>
+                - "Ich suche eine 2-Zimmer Wohnung in Wien"<br>
+                - "Wie hoch darf die Kaution sein?"<br>
+                - "Wie funktioniert die Bonitaetspruefung?"<br>
+                - "Habt ihr Wohnungen in Linz?"<br>
+                - "Kann ich die Kaution in Raten zahlen?"
+            </p>
+        </div>
+    </div>
+
+    <footer>
+        eugen! &copy; 2026 | Widget Testseite | <a href="https://eugen.immo" style="color: #14E1A7;">eugen.immo</a>
+    </footer>
+
+    <!-- eugen! Chat Widget -->
+    <script src="embed.js"></script>
+</body>
+</html>

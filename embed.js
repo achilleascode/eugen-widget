@@ -14,7 +14,7 @@
 
 (function() {
     // Configuration - Change this to your widget URL
-    var WIDGET_URL = window.EUGEN_CHAT_URL || 'https://YOUR_DOMAIN/index.html';
+    var WIDGET_URL = window.EUGEN_CHAT_URL || 'https://eugen-widget.vercel.app/index.html';
 
     // Dimensions: closed = 100x100 (button only), open = 440x650 (chat + button)
     var CLOSED_SIZE = { width: 100, height: 100 };
