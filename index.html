@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat with NEO</title>
+    <title>Chat mit eugen!</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -20,7 +23,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
 
         /* Chat Widget Button */
@@ -31,10 +34,10 @@
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: #69e1bb;
+            background: #14E1A7;
             border: none;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(105, 225, 187, 0.4);
+            box-shadow: 0 4px 12px rgba(20, 225, 167, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -49,7 +52,7 @@
             right: -2px;
             width: 20px;
             height: 20px;
-            background: #e74c3c;
+            background: #CF003D;
             color: white;
             border-radius: 50%;
             display: none;
@@ -67,7 +70,7 @@
 
         #chat-widget-button:hover {
             transform: scale(1.1);
-            box-shadow: 0 6px 16px rgba(105, 225, 187, 0.6);
+            box-shadow: 0 6px 16px rgba(20, 225, 167, 0.6);
         }
 
         #chat-widget-button svg {
@@ -82,7 +85,7 @@
             bottom: 100px;
             right: 20px;
             width: 420px;
-            height: 550px;
+            height: 600px;
             background: white;
             border-radius: 16px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
@@ -110,24 +113,69 @@
 
         /* Header */
         #chat-header {
-            background: #69e1bb;
-            color: white;
-            padding: 20px;
+            background: #ffffff;
+            color: #000000;
+            padding: 16px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-bot-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #14E1A7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .header-bot-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .header-info {
+            display: flex;
+            flex-direction: column;
         }
 
         #chat-header h3 {
             font-size: 18px;
-            font-weight: 600;
-            color: white;
+            font-weight: 700;
+            color: #000000;
+            line-height: 1.2;
+        }
+
+        .online-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #14E1A7;
+            display: inline-block;
         }
 
         #chat-close-button {
             background: none;
             border: none;
-            color: white;
+            color: #666;
             font-size: 24px;
             cursor: pointer;
             width: 30px;
@@ -140,7 +188,7 @@
         }
 
         #chat-close-button:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.05);
         }
 
         /* Messages Container */
@@ -155,19 +203,6 @@
             position: relative;
         }
 
-        #chat-messages.empty::before {
-            content: 'Willkommen!\AWie kann ich Ihnen helfen?';
-            white-space: pre-line;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: #999;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
         #chat-messages::-webkit-scrollbar {
             width: 6px;
         }
@@ -177,15 +212,46 @@
         }
 
         #chat-messages::-webkit-scrollbar-thumb {
-            background: #69e1bb;
+            background: #14E1A7;
             border-radius: 3px;
+        }
+
+        /* Starter Buttons */
+        .starter-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .starter-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: white;
+            border: 1.5px solid #14E1A7;
+            border-radius: 20px;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            color: #000000;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .starter-btn:hover {
+            background: #14E1A7;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(20, 225, 167, 0.3);
         }
 
         /* Message Bubbles */
         .message {
             display: flex;
             flex-direction: column;
-            max-width: 75%;
+            max-width: 80%;
             animation: fadeIn 0.3s ease;
         }
 
@@ -209,25 +275,49 @@
             align-self: flex-start;
         }
 
+        .bot-message-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        /* Bot icon (Kurzlogo "!" – kein Avatar laut Manual) */
+        .bot-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #14E1A7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .bot-icon svg {
+            width: 14px;
+            height: 14px;
+        }
+
         .message-bubble {
             padding: 12px 16px;
             border-radius: 16px;
             word-wrap: break-word;
             color: black;
             font-size: 13px;
+            line-height: 1.5;
         }
 
         .message.user .message-bubble {
-            background: #69e1bb;
+            background: #14E1A7;
             color: white;
             border-bottom-right-radius: 4px;
         }
 
         .message.bot .message-bubble {
-            background: white;
-            border: 1px solid #e0e0e0;
+            background: rgba(20, 225, 167, 0.08);
+            border: 1px solid rgba(20, 225, 167, 0.15);
             border-bottom-left-radius: 4px;
-            color: black;
+            color: #000000;
         }
 
         .message.human .message-bubble {
@@ -243,12 +333,11 @@
             color: #666;
             margin-bottom: 4px;
             padding: 0 4px;
-            text-transform: capitalize;
         }
 
         .message.user .message-label {
             text-align: right;
-            color: #69e1bb;
+            color: #14E1A7;
         }
 
         .message.bot .message-label {
@@ -279,7 +368,7 @@
 
         /* Input Area */
         #chat-input-area {
-            padding: 16px;
+            padding: 12px 16px 8px 16px;
             background: white;
             border-top: 1px solid #e0e0e0;
             display: flex;
@@ -292,30 +381,32 @@
             border: 1px solid #e0e0e0;
             border-radius: 24px;
             font-size: 13px;
+            font-family: 'Inter', sans-serif;
             outline: none;
             transition: border-color 0.2s ease;
             color: black;
         }
 
         #chat-input:focus {
-            border-color: #69e1bb;
+            border-color: #14E1A7;
         }
 
         #chat-send-button {
             width: 44px;
             height: 44px;
             border-radius: 50%;
-            background: #69e1bb;
+            background: #14E1A7;
             border: none;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, background 0.2s ease;
         }
 
         #chat-send-button:hover:not(:disabled) {
             transform: scale(1.05);
+            background: #10c896;
         }
 
         #chat-send-button:disabled {
@@ -327,6 +418,24 @@
             width: 20px;
             height: 20px;
             fill: white;
+        }
+
+        /* Legal Disclaimer */
+        #chat-legal-disclaimer {
+            padding: 6px 16px 10px 16px;
+            background: white;
+            font-size: 10px;
+            line-height: 1.4;
+            color: #999;
+        }
+
+        #chat-legal-disclaimer a {
+            color: #14E1A7;
+            text-decoration: underline;
+        }
+
+        #chat-legal-disclaimer a:hover {
+            color: #10c896;
         }
 
         /* Typing Indicator - Clock */
@@ -365,7 +474,7 @@
 </head>
 <body>
     <!-- Chat Widget Button -->
-    <button id="chat-widget-button" aria-label="Chat öffnen">
+    <button id="chat-widget-button" aria-label="Chat oeffnen">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
         </svg>
@@ -375,15 +484,28 @@
     <!-- Chat Widget Window -->
     <div id="chat-widget-window">
         <div id="chat-header">
-            <h3>Chat with NEO</h3>
-            <button id="chat-close-button" aria-label="Chat schließen">&times;</button>
+            <div class="header-left">
+                <div class="header-bot-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                        <text x="7" y="20" font-family="Inter, sans-serif" font-size="20" font-weight="700" fill="white">!</text>
+                    </svg>
+                </div>
+                <div class="header-info">
+                    <h3>eugen!</h3>
+                    <div class="online-status">
+                        <span class="online-dot"></span>
+                        Online
+                    </div>
+                </div>
+            </div>
+            <button id="chat-close-button" aria-label="Chat schliessen">&times;</button>
         </div>
         <div id="chat-messages"></div>
         <div id="chat-input-area">
-            <input 
-                type="text" 
-                id="chat-input" 
-                placeholder="Nachricht eingeben..." 
+            <input
+                type="text"
+                id="chat-input"
+                placeholder="Nachricht eingeben..."
                 autocomplete="off"
             />
             <button id="chat-send-button" aria-label="Nachricht senden">
@@ -392,14 +514,17 @@
                 </svg>
             </button>
         </div>
+        <div id="chat-legal-disclaimer">
+            Rechtlicher Hinweis: Dieser Chat wird von einer K&uuml;nstlichen Intelligenz betrieben und dient ausschlie&szlig;lich der allgemeinen Information, ersetzt jedoch keine verbindliche und rechtliche Beratung. Die Eingabe personenbezogener Daten ist nicht zwingend erforderlich. Weitere Hinweise findest du hier: <a href="https://eugen.immo/datenschutzerklaerung/" target="_blank" rel="noopener noreferrer">Datenschutzerkl&auml;rung</a>.
+        </div>
     </div>
 
     <script>
         // Supabase Configuration
         const SUPABASE_URL = 'https://zmbyuttcrryflthbeypa.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptYnl1dHRjcnJ5Zmx0aGJleXBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxMjkwNjksImV4cCI6MjA3ODcwNTA2OX0.SpaXrosRhGpzbW-PpnNw6HFmMThEiUaiC43eLQBJSa0';
-        const API_ENDPOINT = 'https://api.telefonagent.com/webhook/b2a300c1-3345-44e8-a5e9-660d10b79984';
-        const CHATBOT_NAME = 'NEO';
+        const API_ENDPOINT = 'https://api.telefonagent.com/webhook/a4e00e27-3156-4db0-8229-143bba6571dd';
+        const CHATBOT_NAME = 'eugen';
 
         // Initialize Supabase Client
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -421,22 +546,29 @@
         let idleGreetingTimer = null;
 
         // Load greeting state from sessionStorage
-        let idleGreetingShown = sessionStorage.getItem('neo_greeting_shown') === 'true';
-        let greetingTimestamp = sessionStorage.getItem('neo_greeting_timestamp')
-            ? parseInt(sessionStorage.getItem('neo_greeting_timestamp'))
+        let idleGreetingShown = sessionStorage.getItem('eugen_greeting_shown') === 'true';
+        let greetingTimestamp = sessionStorage.getItem('eugen_greeting_timestamp')
+            ? parseInt(sessionStorage.getItem('eugen_greeting_timestamp'))
             : null;
 
-        // Initialize Widget
+        // Track whether widget backend has been initialized (lazy init for Cookie Szenario 1:
+        // Chatbot-Icon sichtbar als statischer Button, Supabase/Skript erst bei Klick geladen)
+        let widgetInitialized = false;
+
+        // Initialize Widget - called on first chat open only (Cookie Szenario 1)
         async function initWidget() {
+            if (widgetInitialized) return;
+            widgetInitialized = true;
+
             // Get or create session ID
-            sessionId = localStorage.getItem('crescore_session_id');
+            sessionId = localStorage.getItem('eugen_session_id');
             if (!sessionId) {
                 sessionId = crypto.randomUUID();
-                localStorage.setItem('crescore_session_id', sessionId);
+                localStorage.setItem('eugen_session_id', sessionId);
                 console.log('New session created:', sessionId);
                 // Clear greeting state for new session
-                sessionStorage.removeItem('neo_greeting_shown');
-                sessionStorage.removeItem('neo_greeting_timestamp');
+                sessionStorage.removeItem('eugen_greeting_shown');
+                sessionStorage.removeItem('eugen_greeting_timestamp');
                 idleGreetingShown = false;
                 greetingTimestamp = null;
             } else {
@@ -454,7 +586,7 @@
         async function loadMessages() {
             try {
                 console.log('Loading messages for session:', sessionId);
-                
+
                 const { data, error } = await supabaseClient
                     .from('chatbot_conversations')
                     .select('message_history')
@@ -485,14 +617,9 @@
                     }
 
                     console.log('Messages loaded:', messages.length);
-                    console.log('Type of message_history:', typeof messages);
-                    console.log('Is array?', Array.isArray(messages));
-                    console.log('First few messages:', messages.slice(0, 3));
-
                     renderMessages(messages);
 
                     // If there are existing messages, start the 20-second timer
-                    // (greeting will show once if user doesn't type)
                     if (Array.isArray(messages) && messages.length > 0) {
                         startIdleGreetingTimer();
                     }
@@ -523,7 +650,7 @@
 
             // Create new channel
             realtimeChannel = supabaseClient
-                .channel('crescore_chat_channel')
+                .channel('eugen_chat_channel')
                 .on(
                     'postgres_changes',
                     {
@@ -536,12 +663,12 @@
                         console.log('Realtime update received:', payload);
                         if (payload.new && payload.new.message_history) {
                             let messages = payload.new.message_history;
-                            
+
                             // Handle if message_history is a string
                             if (typeof messages === 'string') {
                                 messages = JSON.parse(messages);
                             }
-                            
+
                             renderMessages(messages);
                             checkForUnreadMessages(messages);
                         }
@@ -555,57 +682,51 @@
         // Convert URLs to clickable links
         function linkifyText(text) {
             if (!text) return '';
-            
+
             // Escape HTML first to prevent XSS
             const escapeHtml = (str) => {
                 const div = document.createElement('div');
                 div.textContent = str;
                 return div.innerHTML;
             };
-            
+
             const escapedText = escapeHtml(text);
-            
+
             // Regex to match URLs starting with http:// or https://
-            // Matches until whitespace, newline, or end of string
             const urlRegex = /(https?:\/\/[^\s<>"]+)/gi;
-            
+
             return escapedText.replace(urlRegex, (url) => {
                 // Remove trailing punctuation that's not part of the URL
                 let cleanUrl = url.replace(/[.,;:!?)\]]+$/, '');
-                return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" style="color: #69e1bb; text-decoration: underline; word-break: break-all;">${cleanUrl}</a>`;
+                return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" style="color: #14E1A7; text-decoration: underline; word-break: break-all;">${cleanUrl}</a>`;
             });
+        }
+
+        // Create bot icon SVG element (Kurzlogo "!" – kein Avatar laut Manual)
+        function createBotIconHTML() {
+            return `<div class="bot-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><text x="7" y="18" font-family="Inter, sans-serif" font-size="18" font-weight="700" fill="white">!</text></svg></div>`;
         }
 
         // Render Messages
         function renderMessages(messages) {
             console.log('renderMessages called with:', typeof messages, messages);
-            console.log('Is array?', Array.isArray(messages));
-            console.log('Length:', messages ? messages.length : 'N/A');
 
             if (!Array.isArray(messages) || messages.length === 0) {
-                console.log('No messages to render - Array check failed or length is 0');
+                console.log('No messages to render');
                 messagesContainer.innerHTML = '';
 
                 // Re-add greeting if it was shown
                 if (idleGreetingShown && greetingTimestamp) {
-                    messagesContainer.classList.remove('empty');
                     appendGreetingMessage();
-                } else {
-                    // Add empty class to show placeholder text
-                    messagesContainer.classList.add('empty');
                 }
                 // If waiting for response, show typing indicator
                 if (isWaitingForResponse) {
-                    messagesContainer.classList.remove('empty');
                     showTypingIndicator();
                 }
                 return;
             }
 
             messagesContainer.innerHTML = '';
-
-            // Remove empty class when there are messages
-            messagesContainer.classList.remove('empty');
 
             // Add greeting message first if it was shown
             if (idleGreetingShown && greetingTimestamp) {
@@ -620,12 +741,17 @@
                 // Add label
                 const labelDiv = document.createElement('div');
                 labelDiv.className = 'message-label';
-                // Show "NEO" for bot messages, otherwise capitalize the type
-                labelDiv.textContent = messageType === 'bot' ? 'NEO' : messageType.charAt(0).toUpperCase() + messageType.slice(1);
+                if (messageType === 'bot') {
+                    labelDiv.textContent = 'eugen!';
+                } else if (messageType === 'user') {
+                    labelDiv.textContent = 'Du';
+                } else {
+                    labelDiv.textContent = messageType.charAt(0).toUpperCase() + messageType.slice(1);
+                }
 
                 const bubbleDiv = document.createElement('div');
                 bubbleDiv.className = 'message-bubble';
-                
+
                 // Convert URLs to links for bot and human messages
                 if (messageType === 'bot' || messageType === 'human') {
                     bubbleDiv.innerHTML = linkifyText(msg.message || '');
@@ -648,29 +774,23 @@
             // Check if last message is from user and we're waiting for response
             const lastMessage = messages[messages.length - 1];
             if (lastMessage && lastMessage.type === 'user' && isWaitingForResponse) {
-                console.log('Last message is from user, showing typing indicator');
                 showTypingIndicator();
             } else if (lastMessage && (lastMessage.type === 'bot' || lastMessage.type === 'human')) {
-                // Bot or human has responded, stop waiting
-                console.log('Bot/Human has responded, stopping wait');
                 isWaitingForResponse = false;
             }
 
             // Scroll to bottom
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            
+
             // Check for unread messages
             checkForUnreadMessages(messages);
         }
 
         // Show Typing Indicator
         function showTypingIndicator() {
-            console.log('showTypingIndicator called');
-            
             // Remove existing typing indicator if any
             const existingIndicator = document.getElementById('typing-indicator');
             if (existingIndicator) {
-                console.log('Removing existing typing indicator');
                 existingIndicator.remove();
             }
 
@@ -680,12 +800,10 @@
 
             const bubbleDiv = document.createElement('div');
             bubbleDiv.className = 'message-bubble';
-            bubbleDiv.innerHTML = '<div class="typing-clock"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#69e1bb"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg></div>';
+            bubbleDiv.innerHTML = '<div class="typing-clock"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#14E1A7"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg></div>';
 
             typingDiv.appendChild(bubbleDiv);
             messagesContainer.appendChild(typingDiv);
-
-            console.log('Typing indicator added to DOM');
 
             // Scroll to bottom
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -700,7 +818,7 @@
 
             // Get last message
             const lastMessage = messages[messages.length - 1];
-            
+
             // If chat is closed and last message is from bot or human, show badge
             if (!widgetWindow.classList.contains('open') &&
                 (lastMessage.type === 'bot' || lastMessage.type === 'human')) {
@@ -713,11 +831,11 @@
         // Format Timestamp
         function formatTimestamp(timestamp) {
             if (!timestamp) return '';
-            
+
             try {
                 // Handle both Unix timestamp (seconds) and milliseconds
                 const date = new Date(timestamp * 1000);
-                
+
                 // Check if date is valid
                 if (isNaN(date.getTime())) {
                     return '';
@@ -736,15 +854,21 @@
             }
         }
 
-        // Send Message
-        async function sendMessage() {
-            const message = inputField.value.trim();
+        // Send Message (can be called with custom text for starter buttons)
+        async function sendMessage(customMessage) {
+            const message = customMessage || inputField.value.trim();
             if (!message) return;
 
             // Clear idle greeting timer
             if (idleGreetingTimer) {
                 clearTimeout(idleGreetingTimer);
                 idleGreetingTimer = null;
+            }
+
+            // Hide starter buttons if visible
+            const starterContainer = document.getElementById('starter-buttons-container');
+            if (starterContainer) {
+                starterContainer.remove();
             }
 
             // Disable input while sending
@@ -759,7 +883,7 @@
                     sessionid: sessionId,
                     timestamp: Math.floor(Date.now() / 1000),
                     message: message,
-                    chatbot_name: "NEO",
+                    chatbot_name: CHATBOT_NAME,
                     type: "user"
                 };
 
@@ -781,14 +905,14 @@
 
                 // Clear input
                 inputField.value = '';
-                
+
                 // Small delay before reloading to ensure message is saved
                 setTimeout(async () => {
                     await loadMessages();
                 }, 300);
             } catch (err) {
                 console.error('Error sending message:', err);
-                alert('Fehler beim Senden der Nachricht. Bitte versuchen Sie es erneut.');
+                alert('Fehler beim Senden der Nachricht. Bitte versuche es erneut.');
                 isWaitingForResponse = false;
             } finally {
                 // Re-enable input
@@ -806,11 +930,8 @@
             greetingTimestamp = Math.floor(Date.now() / 1000);
 
             // Save to sessionStorage
-            sessionStorage.setItem('neo_greeting_shown', 'true');
-            sessionStorage.setItem('neo_greeting_timestamp', greetingTimestamp.toString());
-
-            // Remove empty class
-            messagesContainer.classList.remove('empty');
+            sessionStorage.setItem('eugen_greeting_shown', 'true');
+            sessionStorage.setItem('eugen_greeting_timestamp', greetingTimestamp.toString());
 
             // Create and append greeting message
             appendGreetingMessage();
@@ -823,15 +944,15 @@
         function appendGreetingMessage() {
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message bot';
-            messageDiv.id = 'neo-greeting';
+            messageDiv.id = 'eugen-greeting';
 
             const labelDiv = document.createElement('div');
             labelDiv.className = 'message-label';
-            labelDiv.textContent = 'NEO';
+            labelDiv.textContent = 'eugen!';
 
             const bubbleDiv = document.createElement('div');
             bubbleDiv.className = 'message-bubble';
-            bubbleDiv.textContent = 'Hey… nice to meet you. I am NEO, can I assist you?';
+            bubbleDiv.textContent = 'Hallo! \u{1F44B} Ich bin eine k\u00FCnstliche Intelligenz \u2013 dein KI-Agent eugen! Ich unterst\u00FCtze dich rund um die Uhr bei Fragen zur Wohnungssuche, Besichtigungen und dem Anmietungsprozess. Bitte beachte, dass ich allgemeine Informationen und Hinweise gebe, aber keine verbindliche rechtliche Beratung ersetze. Was kann ich f\u00FCr dich tun?';
 
             const timestampDiv = document.createElement('div');
             timestampDiv.className = 'message-timestamp';
@@ -841,6 +962,41 @@
             messageDiv.appendChild(bubbleDiv);
             messageDiv.appendChild(timestampDiv);
             messagesContainer.appendChild(messageDiv);
+
+            // Add starter buttons after greeting
+            appendStarterButtons();
+        }
+
+        // Append starter buttons
+        function appendStarterButtons() {
+            // Don't show if already interacted
+            const existingStarter = document.getElementById('starter-buttons-container');
+            if (existingStarter) return;
+
+            const container = document.createElement('div');
+            container.id = 'starter-buttons-container';
+            container.className = 'starter-buttons';
+
+            const buttons = [
+                { emoji: '\u{1F3E0}', text: 'Wohnung finden' },
+                { emoji: '\u{1F4C5}', text: 'Besichtigung buchen' },
+                { emoji: '\u{1F4DD}', text: 'Bewerbung f\u00FCr deine Traumwohnung' }
+            ];
+
+            buttons.forEach(btn => {
+                const button = document.createElement('button');
+                button.className = 'starter-btn';
+                button.textContent = `${btn.emoji} ${btn.text}`;
+                button.addEventListener('click', () => {
+                    sendMessage(`${btn.emoji} ${btn.text}`);
+                });
+                container.appendChild(button);
+            });
+
+            messagesContainer.appendChild(container);
+
+            // Scroll to bottom after adding buttons
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         // Start Idle Greeting Timer
@@ -864,10 +1020,10 @@
         function notifyParentOfSize(isOpen) {
             if (window.parent !== window) {
                 window.parent.postMessage({
-                    type: 'neo-chat-resize',
+                    type: 'eugen-chat-resize',
                     isOpen: isOpen,
                     width: isOpen ? 440 : 100,
-                    height: isOpen ? 650 : 100
+                    height: isOpen ? 700 : 100
                 }, '*');
             }
         }
@@ -876,19 +1032,17 @@
         widgetButton.addEventListener('click', async () => {
             // Toggle chat window
             if (widgetWindow.classList.contains('open')) {
-                // Close: first hide chat, then resize iframe
+                // Close
                 widgetWindow.classList.remove('open');
-                // Small delay before shrinking iframe
                 setTimeout(() => notifyParentOfSize(false), 50);
-                // Clear timer when closing
                 if (idleGreetingTimer) {
                     clearTimeout(idleGreetingTimer);
                     idleGreetingTimer = null;
                 }
             } else {
-                // Open: first resize iframe, then show chat
+                // Open – lazy init on first click (Cookie Szenario 1)
+                await initWidget();
                 notifyParentOfSize(true);
-                // Wait for iframe to resize before showing chat
                 setTimeout(async () => {
                     widgetWindow.classList.add('open');
                     notificationBadge.classList.remove('show');
@@ -900,17 +1054,15 @@
         });
 
         closeButton.addEventListener('click', () => {
-            // Close: first hide chat, then resize iframe
             widgetWindow.classList.remove('open');
             setTimeout(() => notifyParentOfSize(false), 50);
-            // Clear timer when closing
             if (idleGreetingTimer) {
                 clearTimeout(idleGreetingTimer);
                 idleGreetingTimer = null;
             }
         });
 
-        sendButton.addEventListener('click', sendMessage);
+        sendButton.addEventListener('click', () => sendMessage());
 
         inputField.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -918,8 +1070,8 @@
             }
         });
 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', initWidget);
+        // NOTE: No DOMContentLoaded init – widget initializes lazily on first click
+        // per Manual Kapitel 8 "Cookie & Chat Anzeige" Szenario 1
 
         // Cleanup on page unload
         window.addEventListener('beforeunload', () => {
