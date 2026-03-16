@@ -7,6 +7,29 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'Nexa';
+            src: url('https://cdn.jsdelivr.net/gh/nicholasgasior/gfonts@master/dist/nexa/nexa-regular.woff2') format('woff2');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Nexa';
+            src: url('https://cdn.jsdelivr.net/gh/nicholasgasior/gfonts@master/dist/nexa/nexa-bold.woff2') format('woff2');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Nexa';
+            src: url('https://cdn.jsdelivr.net/gh/nicholasgasior/gfonts@master/dist/nexa/nexa-heavy.woff2') format('woff2');
+            font-weight: 800;
+            font-style: normal;
+            font-display: swap;
+        }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -23,7 +46,7 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Nexa', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
 
         /* Chat Widget Button */
@@ -522,8 +545,9 @@
     <!-- Chat Widget Button -->
     <button id="chat-widget-button" aria-label="Chat oeffnen">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
-            <rect x="9.5" y="4" width="5" height="12" rx="2.5" fill="white"/>
-            <circle cx="12" cy="20" r="2.2" fill="#CF003D"/>
+            <rect x="10" y="3" width="4" height="10" rx="2" fill="white"/>
+            <circle cx="12" cy="15.5" r="2" fill="#CF003D"/>
+            <circle cx="12" cy="20" r="1.8" fill="black"/>
         </svg>
         <span id="notification-badge">1</span>
     </button>
@@ -535,8 +559,9 @@
                 <div class="header-bot-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
                         <circle cx="12" cy="12" r="12" fill="#14E1A7"/>
-                        <rect x="10.5" y="5" width="3" height="10" rx="1.5" fill="#000000"/>
-                        <circle cx="12" cy="18.5" r="1.8" fill="#CF003D"/>
+                        <rect x="10.5" y="4" width="3" height="9" rx="1.5" fill="white"/>
+                        <circle cx="12" cy="15.5" r="1.8" fill="#CF003D"/>
+                        <circle cx="12" cy="19.5" r="1.5" fill="black"/>
                     </svg>
                 </div>
                 <div class="header-info">
@@ -774,7 +799,7 @@
 
         // Create bot icon SVG element (Kurzlogo "!" – kein Avatar laut Manual)
         function createBotIconHTML() {
-            return `<div class="bot-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#14E1A7"/><rect x="10.5" y="5" width="3" height="10" rx="1.5" fill="#000000"/><circle cx="12" cy="18.5" r="1.8" fill="#CF003D"/></svg></div>`;
+            return `<div class="bot-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#14E1A7"/><rect x="10.5" y="4" width="3" height="9" rx="1.5" fill="white"/><circle cx="12" cy="15.5" r="1.8" fill="#CF003D"/><circle cx="12" cy="19.5" r="1.5" fill="black"/></svg></div>`;
         }
 
         // Render Messages
