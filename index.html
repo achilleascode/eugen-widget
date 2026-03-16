@@ -731,9 +731,10 @@
                     console.log('Messages loaded:', messages.length);
                     renderMessages(messages);
 
-                    // If there are existing messages, start the 20-second timer
+                    // If messages exist, mark greeting as done (no greeting needed)
                     if (Array.isArray(messages) && messages.length > 0) {
-                        startIdleGreetingTimer();
+                        idleGreetingShown = true;
+                        sessionStorage.setItem('eugen_greeting_shown', 'true');
                     }
                 } else {
                     console.log('No message_history in response');
@@ -989,11 +990,13 @@
             const message = customMessage || inputField.value.trim();
             if (!message) return;
 
-            // Clear idle greeting timer
+            // Clear idle greeting timer and mark as shown
             if (idleGreetingTimer) {
                 clearTimeout(idleGreetingTimer);
                 idleGreetingTimer = null;
             }
+            idleGreetingShown = true;
+            sessionStorage.setItem('eugen_greeting_shown', 'true');
 
             // Hide starter buttons permanently
             sessionStorage.setItem('eugen_buttons_used', 'true');
@@ -1053,9 +1056,16 @@
             }
         }
 
-        // Show Idle Greeting Message
+        // Show Idle Greeting Message - ONLY for new sessions with no messages
         function showIdleGreeting() {
             if (idleGreetingShown) return;
+            // Don't show if real messages already exist
+            const existingMessages = messagesContainer.querySelectorAll('.message.user, .message.bot');
+            if (existingMessages.length > 0) {
+                idleGreetingShown = true;
+                sessionStorage.setItem('eugen_greeting_shown', 'true');
+                return;
+            }
 
             idleGreetingShown = true;
             greetingTimestamp = Math.floor(Date.now() / 1000);
@@ -1187,7 +1197,6 @@
                     notificationBadge.classList.remove('show');
                     await loadMessages();
                     inputField.focus();
-                    startIdleGreetingTimer();
                 }, 100);
             }
         });
