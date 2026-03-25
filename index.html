@@ -67,6 +67,26 @@
             justify-content: center;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             z-index: 1000;
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+
+        #chat-widget-button.pulsing-disabled {
+            animation: none;
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                box-shadow: 0 4px 12px rgba(20, 225, 167, 0.4),
+                            0 0 0 0 rgba(20, 225, 167, 0.6);
+            }
+            50% {
+                box-shadow: 0 4px 12px rgba(20, 225, 167, 0.4),
+                            0 0 0 14px rgba(20, 225, 167, 0);
+            }
+            100% {
+                box-shadow: 0 4px 12px rgba(20, 225, 167, 0.4),
+                            0 0 0 0 rgba(20, 225, 167, 0.6);
+            }
         }
 
         /* Notification Badge */
@@ -119,7 +139,7 @@
             overflow: hidden;
             z-index: 1001;
             animation: slideUp 0.3s ease;
-            transition: width 0.3s ease, height 0.3s ease, bottom 0.3s ease;
+            transition: width 0.3s ease, height 0.3s ease, bottom 0.3s ease, right 0.3s ease, border-radius 0.3s ease;
         }
 
         #chat-widget-window.open {
@@ -244,9 +264,9 @@
 
         /* Expanded State */
         #chat-widget-window.expanded {
-            width: 500px;
-            height: 80vh;
-            max-height: 85vh;
+            width: 600px;
+            height: 85vh;
+            max-height: 90vh;
             bottom: 20px;
         }
 
@@ -288,7 +308,7 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 10px 16px;
+            padding: 10px 14px;
             background: white;
             border: 1.5px solid #14E1A7;
             border-radius: 20px;
@@ -298,6 +318,7 @@
             cursor: pointer;
             transition: all 0.2s ease;
             text-align: left;
+            line-height: 1.3;
         }
 
         .starter-btn:hover {
@@ -369,6 +390,33 @@
             color: black;
             font-size: 13px;
             line-height: 1.5;
+            hyphens: auto;
+            -webkit-hyphens: auto;
+        }
+
+        .message-bubble p {
+            margin: 0 0 8px 0;
+        }
+
+        .message-bubble p:last-child {
+            margin-bottom: 0;
+        }
+
+        .message-bubble .chat-link-btn {
+            display: inline-block;
+            padding: 6px 14px;
+            background: #14E1A7;
+            color: white;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 12px;
+            margin: 4px 0;
+            transition: background 0.2s ease;
+        }
+
+        .message-bubble .chat-link-btn:hover {
+            background: #10c896;
         }
 
         .message.user .message-bubble {
@@ -486,11 +534,19 @@
 
         /* Legal Disclaimer */
         #chat-legal-disclaimer {
-            padding: 6px 16px 10px 16px;
+            padding: 6px 16px 8px 16px;
             background: white;
-            font-size: 10px;
+            font-size: 9.5px;
             line-height: 1.4;
             color: #999;
+        }
+
+        #chat-legal-disclaimer p {
+            margin: 0 0 4px 0;
+        }
+
+        #chat-legal-disclaimer p:last-child {
+            margin-bottom: 0;
         }
 
         #chat-legal-disclaimer a {
@@ -543,22 +599,29 @@
         /* Mobile Responsive */
         @media (max-width: 480px) {
             #chat-widget-window {
-                width: calc(100vw - 40px);
-                height: calc(100vh - 120px);
-                bottom: 100px;
-                right: 20px;
+                width: calc(100vw - 20px);
+                height: calc(100vh - 100px);
+                bottom: 90px;
+                right: 10px;
             }
 
             #chat-widget-window.expanded {
-                width: calc(100vw - 20px);
-                height: calc(100vh - 40px);
-                bottom: 20px;
-                right: 10px;
+                width: 100vw;
+                height: 100vh;
+                bottom: 0;
+                right: 0;
                 max-height: none;
+                border-radius: 0;
             }
 
-            #chat-expand-button {
-                display: none; /* hide on mobile – already large enough */
+            #chat-close-button {
+                width: 36px;
+                height: 36px;
+            }
+
+            #chat-close-button svg {
+                width: 22px;
+                height: 22px;
             }
         }
     </style>
@@ -626,7 +689,8 @@
             </button>
         </div>
         <div id="chat-legal-disclaimer">
-            Rechtlicher Hinweis: Dieser Chat wird von einer K&uuml;nstlichen Intelligenz betrieben und dient ausschlie&szlig;lich der allgemeinen Information, ersetzt jedoch keine verbindliche und rechtliche Beratung. Die Eingabe personenbezogener Daten ist nicht zwingend erforderlich. Weitere Hinweise findest du hier: <a href="https://eugen.immo/datenschutzerklaerung/" target="_blank" rel="noopener noreferrer">Datenschutzerkl&auml;rung</a>.
+            <p>Dieser Chat wird von einer KI betrieben und dient der allgemeinen Information. Er ersetzt keine verbindliche rechtliche Beratung.</p>
+            <p>Die Eingabe personenbezogener Daten ist <strong>nicht zwingend erforderlich</strong>. <a href="https://eugen.immo/datenschutzerklaerung/" target="_blank" rel="noopener noreferrer">Datenschutzerkl&auml;rung</a></p>
         </div>
     </div>
 
@@ -656,6 +720,8 @@
         let isWaitingForResponse = false;
         const notificationBadge = document.getElementById('notification-badge');
         let idleGreetingTimer = null;
+        let responseTimeout = null;
+        const RESPONSE_TIMEOUT_MS = 60000;
 
         // Load greeting state from sessionStorage
         let idleGreetingShown = sessionStorage.getItem('eugen_greeting_shown') === 'true';
@@ -792,7 +858,7 @@
                 });
         }
 
-        // Convert URLs to clickable links
+        // Convert URLs to clickable links + Markdown formatting
         function linkifyText(text) {
             if (!text) return '';
 
@@ -805,19 +871,46 @@
 
             let html = escapeHtml(text);
 
-            // Basic Markdown: **bold**
+            // 1. URLs extrahieren und temporär ersetzen (vor Markdown)
+            const urls = [];
+            const urlRegex = /(https?:\/\/[^\s<>"]+)/gi;
+            html = html.replace(urlRegex, (url) => {
+                let cleanUrl = url.replace(/[.,;:!?)\]]+$/, '');
+                const idx = urls.length;
+                urls.push(cleanUrl);
+                return `__URL_${idx}__`;
+            });
+
+            // 2. **bold**
             html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 
-            // Basic Markdown: list items (- item)
-            html = html.replace(/^- (.+)$/gm, '<span style="display:block;padding-left:12px;">• $1</span>');
+            // 3. Nummerierte Listen (1. item, 2. item)
+            html = html.replace(/^(\d+)\.\s+(.+)$/gm, '<div style="display:flex;gap:6px;padding:2px 0;"><span style="font-weight:600;min-width:18px;">$1.</span><span>$2</span></div>');
 
-            // Regex to match URLs starting with http:// or https://
-            const urlRegex = /(https?:\/\/[^\s<>"]+)/gi;
+            // 4. Ungeordnete Listen (- item)
+            html = html.replace(/^[-–]\s+(.+)$/gm, '<div style="display:flex;gap:6px;padding:2px 0;padding-left:4px;"><span>•</span><span>$1</span></div>');
 
-            return html.replace(urlRegex, (url) => {
-                let cleanUrl = url.replace(/[.,;:!?)\]]+$/, '');
-                return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" style="color: #14E1A7; text-decoration: underline; word-break: break-all;">${cleanUrl}</a>`;
+            // 5. Absätze: doppelte Zeilenumbrüche
+            html = html.replace(/\n\n+/g, '</p><p>');
+            html = '<p>' + html + '</p>';
+
+            // 6. Einfache Zeilenumbrüche
+            html = html.replace(/\n/g, '<br>');
+
+            // 7. Leere Paragraphen entfernen
+            html = html.replace(/<p>\s*<\/p>/g, '');
+
+            // 8. URLs als Buttons zurücksetzen
+            urls.forEach((url, idx) => {
+                const isInserat = url.includes('eugen.immo/immobilien/');
+                const isProject = url.includes('eugen.immo/projekte/');
+                let label = '🔗 Link öffnen';
+                if (isInserat) label = '🏠 Inserat ansehen';
+                else if (isProject) label = '🏗️ Projekt ansehen';
+                html = html.replace(`__URL_${idx}__`, `<a href="${url}" target="_blank" rel="noopener noreferrer" class="chat-link-btn">${label}</a>`);
             });
+
+            return html;
         }
 
         // Create bot icon SVG element (Kurzlogo "!" – kein Avatar laut Manual)
@@ -908,10 +1001,14 @@
                 showTypingIndicator();
             } else if (lastMessage && (lastMessage.type === 'bot' || lastMessage.type === 'human')) {
                 isWaitingForResponse = false;
+                // Clear response timeout
+                if (responseTimeout) { clearTimeout(responseTimeout); responseTimeout = null; }
+                const typingEl = document.getElementById('typing-indicator');
+                if (typingEl) typingEl.remove();
             }
 
-            // Scroll to bottom
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            // Smooth scroll to bottom
+            messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
 
             // Check for unread messages
             checkForUnreadMessages(messages);
@@ -936,8 +1033,8 @@
             typingDiv.appendChild(bubbleDiv);
             messagesContainer.appendChild(typingDiv);
 
-            // Scroll to bottom
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            // Smooth scroll to bottom
+            messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
         }
 
         // Check for Unread Messages
@@ -1012,6 +1109,57 @@
             // Set waiting for response flag
             isWaitingForResponse = true;
 
+            // Clear input immediately
+            inputField.value = '';
+
+            // Optimistic UI: Show user message immediately
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user';
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'message-label';
+            labelDiv.textContent = 'Du';
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            bubbleDiv.textContent = message;
+            const timestampDiv = document.createElement('div');
+            timestampDiv.className = 'message-timestamp';
+            timestampDiv.textContent = formatTimestamp(Math.floor(Date.now() / 1000));
+            messageDiv.appendChild(labelDiv);
+            messageDiv.appendChild(bubbleDiv);
+            messageDiv.appendChild(timestampDiv);
+            messagesContainer.appendChild(messageDiv);
+
+            // Show typing indicator immediately
+            showTypingIndicator();
+
+            // Start response timeout
+            if (responseTimeout) clearTimeout(responseTimeout);
+            responseTimeout = setTimeout(() => {
+                if (isWaitingForResponse) {
+                    const typingEl = document.getElementById('typing-indicator');
+                    if (typingEl) typingEl.remove();
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'message bot';
+                    const errLabel = document.createElement('div');
+                    errLabel.className = 'message-label';
+                    errLabel.textContent = 'eugen!';
+                    const errBubble = document.createElement('div');
+                    errBubble.className = 'message-bubble';
+                    errBubble.textContent = 'Entschuldigung, die Antwort dauert leider zu lange. Bitte versuche es erneut oder kontaktiere uns unter hallo@eugen.at.';
+                    const errRow = document.createElement('div');
+                    errRow.className = 'bot-message-row';
+                    errRow.innerHTML = createBotIconHTML();
+                    errRow.appendChild(errBubble);
+                    errorDiv.appendChild(errLabel);
+                    errorDiv.appendChild(errRow);
+                    messagesContainer.appendChild(errorDiv);
+                    messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
+                    isWaitingForResponse = false;
+                    inputField.disabled = false;
+                    sendButton.disabled = false;
+                }
+            }, RESPONSE_TIMEOUT_MS);
+
             try {
                 const payload = {
                     sessionid: sessionId,
@@ -1037,19 +1185,29 @@
 
                 console.log('Message sent successfully');
 
-                // Clear input
-                inputField.value = '';
-
                 // Small delay before reloading to ensure message is saved
                 setTimeout(async () => {
                     await loadMessages();
                 }, 300);
             } catch (err) {
                 console.error('Error sending message:', err);
-                alert('Fehler beim Senden der Nachricht. Bitte versuche es erneut.');
+                const typingEl = document.getElementById('typing-indicator');
+                if (typingEl) typingEl.remove();
                 isWaitingForResponse = false;
+                if (responseTimeout) { clearTimeout(responseTimeout); responseTimeout = null; }
+
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'message bot';
+                const errBubble = document.createElement('div');
+                errBubble.className = 'message-bubble';
+                errBubble.textContent = 'Fehler beim Senden. Bitte versuche es erneut.';
+                const errRow = document.createElement('div');
+                errRow.className = 'bot-message-row';
+                errRow.innerHTML = createBotIconHTML();
+                errRow.appendChild(errBubble);
+                errorDiv.appendChild(errRow);
+                messagesContainer.appendChild(errorDiv);
             } finally {
-                // Re-enable input
                 inputField.disabled = false;
                 sendButton.disabled = false;
                 inputField.focus();
@@ -1093,7 +1251,7 @@
 
             const bubbleDiv = document.createElement('div');
             bubbleDiv.className = 'message-bubble';
-            bubbleDiv.textContent = 'Hallo! \u{1F44B} Ich bin eine k\u00FCnstliche Intelligenz \u2013 dein KI-Agent eugen! Ich unterst\u00FCtze dich rund um die Uhr bei Fragen zur Wohnungssuche, Besichtigungen und dem Anmietungsprozess. Bitte beachte, dass ich allgemeine Informationen und Hinweise gebe, aber keine verbindliche rechtliche Beratung ersetze. Was kann ich f\u00FCr dich tun?';
+            bubbleDiv.textContent = 'Hallo! \u{1F44B} Ich bin eugen, dein KI-Agent. Ich unterst\u00FCtze dich rund um die Uhr bei der Wohnungssuche, Besichtigungen und dem Anmietungsprozess.';
 
             const timestampDiv = document.createElement('div');
             timestampDiv.className = 'message-timestamp';
@@ -1110,8 +1268,11 @@
             messageDiv.appendChild(timestampDiv);
             messagesContainer.appendChild(messageDiv);
 
-            // Add starter buttons after greeting
+            // Add starter buttons after greeting (visible first due to compact text)
             appendStarterButtons();
+
+            // Scroll so buttons are visible
+            messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
         }
 
         // Append starter buttons
@@ -1171,8 +1332,8 @@
                 window.parent.postMessage({
                     type: 'eugen-chat-resize',
                     isOpen: isOpen,
-                    width: isOpen ? (isExpanded ? 520 : 400) : 100,
-                    height: isOpen ? (isExpanded ? 800 : 650) : 100
+                    width: isOpen ? (isExpanded ? 620 : 400) : 100,
+                    height: isOpen ? (isExpanded ? 900 : 650) : 100
                 }, '*');
             }
         }
@@ -1195,6 +1356,7 @@
                 setTimeout(async () => {
                     widgetWindow.classList.add('open');
                     notificationBadge.classList.remove('show');
+                    widgetButton.classList.add('pulsing-disabled');
                     await loadMessages();
                     inputField.focus();
                 }, 100);
