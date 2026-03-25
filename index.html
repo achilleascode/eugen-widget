@@ -949,80 +949,129 @@
             return `<div class="bot-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="#14E1A7"/><rect x="11" y="3.5" width="6" height="12.5" rx="3" fill="white"/><circle cx="14" cy="15.5" r="2.6" fill="#CF003D"/><circle cx="14" cy="22" r="2.6" fill="black"/></svg></div>`;
         }
 
-        // Render Messages
+        // Track last rendered message count to avoid unnecessary re-renders
+        let lastRenderedCount = 0;
+        let lastRenderedHash = '';
+
+        // Build a simple hash of messages to detect changes
+        function messagesHash(messages) {
+            if (!Array.isArray(messages) || messages.length === 0) return '';
+            return messages.map(m => (m.type || '') + ':' + (m.message || '').slice(0, 50)).join('|');
+        }
+
+        // Render a single message element
+        function createMessageElement(msg) {
+            const messageDiv = document.createElement('div');
+            const messageType = msg.type || 'bot';
+            messageDiv.className = `message ${messageType}`;
+
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'message-label';
+            if (messageType === 'bot') {
+                labelDiv.textContent = 'eugen!';
+            } else if (messageType === 'human') {
+                labelDiv.textContent = 'eugen! Team';
+            } else if (messageType === 'user') {
+                labelDiv.textContent = 'Du';
+            } else {
+                labelDiv.textContent = messageType.charAt(0).toUpperCase() + messageType.slice(1);
+            }
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+
+            if (messageType === 'bot' || messageType === 'human') {
+                bubbleDiv.innerHTML = linkifyText(msg.message || '');
+            } else {
+                bubbleDiv.textContent = msg.message || '';
+            }
+
+            const timestampDiv = document.createElement('div');
+            timestampDiv.className = 'message-timestamp';
+            timestampDiv.textContent = formatTimestamp(msg.timestamp);
+
+            if (messageType === 'bot' || messageType === 'human') {
+                const row = document.createElement('div');
+                row.className = 'bot-message-row';
+                row.innerHTML = createBotIconHTML();
+                row.appendChild(bubbleDiv);
+                messageDiv.appendChild(labelDiv);
+                messageDiv.appendChild(row);
+                messageDiv.appendChild(timestampDiv);
+            } else {
+                messageDiv.appendChild(labelDiv);
+                messageDiv.appendChild(bubbleDiv);
+                messageDiv.appendChild(timestampDiv);
+            }
+            return messageDiv;
+        }
+
+        // Render Messages — smart: only update what changed
         function renderMessages(messages) {
-            console.log('renderMessages called with:', typeof messages, messages);
+            console.log('renderMessages called with:', typeof messages, Array.isArray(messages) ? messages.length : 0, 'messages');
 
             if (!Array.isArray(messages) || messages.length === 0) {
-                console.log('No messages to render');
-                messagesContainer.innerHTML = '';
-
-                // Re-add greeting if it was shown
-                if (idleGreetingShown && greetingTimestamp) {
-                    appendGreetingMessage();
-                }
-                // If waiting for response, show typing indicator
-                if (isWaitingForResponse) {
-                    showTypingIndicator();
+                // Only clear if we haven't already rendered empty + greeting
+                if (lastRenderedCount !== 0 || !idleGreetingShown) {
+                    messagesContainer.innerHTML = '';
+                    if (idleGreetingShown && greetingTimestamp) {
+                        appendGreetingMessage();
+                    }
+                    if (isWaitingForResponse) {
+                        showTypingIndicator();
+                    }
+                    lastRenderedCount = 0;
+                    lastRenderedHash = '';
                 }
                 return;
             }
 
-            messagesContainer.innerHTML = '';
+            const newHash = messagesHash(messages);
 
-            // Add greeting message first if it was shown
-            if (idleGreetingShown && greetingTimestamp) {
-                appendGreetingMessage();
+            // Skip re-render if messages haven't changed
+            if (newHash === lastRenderedHash) {
+                console.log('Messages unchanged, skipping re-render');
+                return;
             }
 
-            messages.forEach(msg => {
-                const messageDiv = document.createElement('div');
-                const messageType = msg.type || 'bot';
-                messageDiv.className = `message ${messageType}`;
+            // If new messages are a superset (append-only), just add the new ones
+            const existingMessages = messagesContainer.querySelectorAll('.message:not(#typing-indicator):not(#eugen-greeting)');
+            const canAppend = messages.length > lastRenderedCount && lastRenderedCount > 0;
 
-                // Add label
-                const labelDiv = document.createElement('div');
-                labelDiv.className = 'message-label';
-                if (messageType === 'bot') {
-                    labelDiv.textContent = 'eugen!';
-                } else if (messageType === 'human') {
-                    labelDiv.textContent = 'eugen! Team';
-                } else if (messageType === 'user') {
-                    labelDiv.textContent = 'Du';
-                } else {
-                    labelDiv.textContent = messageType.charAt(0).toUpperCase() + messageType.slice(1);
+            if (canAppend) {
+                // Remove optimistic user messages and typing indicator (they'll be replaced by real data)
+                const typingEl = document.getElementById('typing-indicator');
+                if (typingEl) typingEl.remove();
+
+                // Remove existing messages that might be optimistic, re-render from lastRenderedCount
+                // But only if the existing messages match the beginning of the new ones
+                const existingMsgElements = messagesContainer.querySelectorAll('.message.user, .message.bot, .message.human');
+                let matchCount = 0;
+                for (let i = 0; i < Math.min(lastRenderedCount, messages.length); i++) {
+                    matchCount++;
                 }
 
-                const bubbleDiv = document.createElement('div');
-                bubbleDiv.className = 'message-bubble';
+                // Remove all messages after the matching ones and re-add
+                const allMsgElements = Array.from(messagesContainer.querySelectorAll('.message:not(#eugen-greeting)'));
+                allMsgElements.forEach(el => el.remove());
 
-                // Convert URLs to links for bot and human messages
-                if (messageType === 'bot' || messageType === 'human') {
-                    bubbleDiv.innerHTML = linkifyText(msg.message || '');
-                } else {
-                    bubbleDiv.textContent = msg.message || '';
+                // Re-render all real messages
+                messages.forEach(msg => {
+                    messagesContainer.appendChild(createMessageElement(msg));
+                });
+            } else {
+                // Full re-render (first load or structural change)
+                messagesContainer.innerHTML = '';
+                if (idleGreetingShown && greetingTimestamp) {
+                    appendGreetingMessage();
                 }
+                messages.forEach(msg => {
+                    messagesContainer.appendChild(createMessageElement(msg));
+                });
+            }
 
-                const timestampDiv = document.createElement('div');
-                timestampDiv.className = 'message-timestamp';
-                timestampDiv.textContent = formatTimestamp(msg.timestamp);
-
-                // Bot and human messages: wrap bubble with icon row
-                if (messageType === 'bot' || messageType === 'human') {
-                    const row = document.createElement('div');
-                    row.className = 'bot-message-row';
-                    row.innerHTML = createBotIconHTML();
-                    row.appendChild(bubbleDiv);
-                    messageDiv.appendChild(labelDiv);
-                    messageDiv.appendChild(row);
-                    messageDiv.appendChild(timestampDiv);
-                } else {
-                    messageDiv.appendChild(labelDiv);
-                    messageDiv.appendChild(bubbleDiv);
-                    messageDiv.appendChild(timestampDiv);
-                }
-                messagesContainer.appendChild(messageDiv);
-            });
+            lastRenderedCount = messages.length;
+            lastRenderedHash = newHash;
 
             console.log('Rendered', messages.length, 'messages to DOM');
 
@@ -1032,7 +1081,6 @@
                 showTypingIndicator();
             } else if (lastMessage && (lastMessage.type === 'bot' || lastMessage.type === 'human')) {
                 isWaitingForResponse = false;
-                // Clear response timeout
                 if (responseTimeout) { clearTimeout(responseTimeout); responseTimeout = null; }
                 const typingEl = document.getElementById('typing-indicator');
                 if (typingEl) typingEl.remove();
@@ -1216,10 +1264,10 @@
 
                 console.log('Message sent successfully');
 
-                // Small delay before reloading to ensure message is saved
-                setTimeout(async () => {
-                    await loadMessages();
-                }, 300);
+                // Do NOT call loadMessages() here — the Realtime subscription
+                // will trigger renderMessages() when the data changes in Supabase.
+                // Calling loadMessages() causes innerHTML='' which flickers/resets
+                // the optimistic UI (user message + typing indicator).
             } catch (err) {
                 console.error('Error sending message:', err);
                 const typingEl = document.getElementById('typing-indicator');
