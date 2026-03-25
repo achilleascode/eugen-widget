@@ -871,18 +871,34 @@
             // 1. BEFORE escaping: extract Markdown links [text](url) and raw URLs
             const links = [];
 
-            // 1a. Markdown links: [text](url)
-            text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, label, url) => {
+            // 1a. Markdown links: [text](url) — permissive regex allows whitespace, parens in URL
+            text = text.replace(/\[([^\]]+)\]\(\s*(https?:\/\/[^)\s]*[^)\s.,;:!?])\s*\)/g, (_, label, url) => {
                 const idx = links.length;
-                links.push({ url: url.replace(/[.,;:!?)\]]+$/, ''), label });
+                links.push({ url, label });
                 return `__LINK_${idx}__`;
             });
 
-            // 1b. Raw URLs (not already captured)
-            text = text.replace(/(https?:\/\/[^\s<>"]+)/gi, (url) => {
+            // 1b. Markdown links without protocol: [text](domain.tld/path)
+            text = text.replace(/\[([^\]]+)\]\(\s*((?:www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}[^)\s]*)\s*\)/g, (_, label, url) => {
                 const idx = links.length;
-                links.push({ url: url.replace(/[.,;:!?)\]]+$/, ''), label: null });
+                links.push({ url: 'https://' + url.replace(/^www\./, ''), label });
                 return `__LINK_${idx}__`;
+            });
+
+            // 1c. Raw URLs (not already captured)
+            text = text.replace(/(https?:\/\/[^\s<>")\]]+)/gi, (url) => {
+                const idx = links.length;
+                links.push({ url: url.replace(/[.,;:!?]+$/, ''), label: null });
+                return `__LINK_${idx}__`;
+            });
+
+            // 1d. Cleanup: if any [text](__LINK_N__) pattern remains, fix it
+            text = text.replace(/\[([^\]]+)\]\(\s*(__LINK_\d+__)\s*\)/g, (_, label, placeholder) => {
+                const match = placeholder.match(/__LINK_(\d+)__/);
+                if (match) {
+                    links[parseInt(match[1])].label = label;
+                }
+                return placeholder;
             });
 
             // 2. Now escape HTML
