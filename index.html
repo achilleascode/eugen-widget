@@ -862,52 +862,67 @@
         function linkifyText(text) {
             if (!text) return '';
 
-            // Escape HTML first to prevent XSS
             const escapeHtml = (str) => {
                 const div = document.createElement('div');
                 div.textContent = str;
                 return div.innerHTML;
             };
 
-            let html = escapeHtml(text);
+            // 1. BEFORE escaping: extract Markdown links [text](url) and raw URLs
+            const links = [];
 
-            // 1. URLs extrahieren und temporär ersetzen (vor Markdown)
-            const urls = [];
-            const urlRegex = /(https?:\/\/[^\s<>"]+)/gi;
-            html = html.replace(urlRegex, (url) => {
-                let cleanUrl = url.replace(/[.,;:!?)\]]+$/, '');
-                const idx = urls.length;
-                urls.push(cleanUrl);
-                return `__URL_${idx}__`;
+            // 1a. Markdown links: [text](url)
+            text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, label, url) => {
+                const idx = links.length;
+                links.push({ url: url.replace(/[.,;:!?)\]]+$/, ''), label });
+                return `__LINK_${idx}__`;
             });
 
-            // 2. **bold**
+            // 1b. Raw URLs (not already captured)
+            text = text.replace(/(https?:\/\/[^\s<>"]+)/gi, (url) => {
+                const idx = links.length;
+                links.push({ url: url.replace(/[.,;:!?)\]]+$/, ''), label: null });
+                return `__LINK_${idx}__`;
+            });
+
+            // 2. Now escape HTML
+            let html = escapeHtml(text);
+
+            // 3. **bold**
             html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 
-            // 3. Nummerierte Listen (1. item, 2. item)
+            // 4. Nummerierte Listen (1. item, 2. item)
             html = html.replace(/^(\d+)\.\s+(.+)$/gm, '<div style="display:flex;gap:6px;padding:2px 0;"><span style="font-weight:600;min-width:18px;">$1.</span><span>$2</span></div>');
 
-            // 4. Ungeordnete Listen (- item)
+            // 5. Ungeordnete Listen (- item)
             html = html.replace(/^[-–]\s+(.+)$/gm, '<div style="display:flex;gap:6px;padding:2px 0;padding-left:4px;"><span>•</span><span>$1</span></div>');
 
-            // 5. Absätze: doppelte Zeilenumbrüche
+            // 6. Absätze: doppelte Zeilenumbrüche
             html = html.replace(/\n\n+/g, '</p><p>');
             html = '<p>' + html + '</p>';
 
-            // 6. Einfache Zeilenumbrüche
+            // 7. Einfache Zeilenumbrüche
             html = html.replace(/\n/g, '<br>');
 
-            // 7. Leere Paragraphen entfernen
+            // 8. Leere Paragraphen entfernen
             html = html.replace(/<p>\s*<\/p>/g, '');
 
-            // 8. URLs als Buttons zurücksetzen
-            urls.forEach((url, idx) => {
-                const isInserat = url.includes('eugen.immo/immobilien/');
-                const isProject = url.includes('eugen.immo/projekte/');
-                let label = '🔗 Link öffnen';
-                if (isInserat) label = '🏠 Inserat ansehen';
-                else if (isProject) label = '🏗️ Projekt ansehen';
-                html = html.replace(`__URL_${idx}__`, `<a href="${url}" target="_blank" rel="noopener noreferrer" class="chat-link-btn">${label}</a>`);
+            // 9. Links als Buttons zurücksetzen
+            links.forEach((link, idx) => {
+                const isInserat = link.url.includes('eugen.immo/immobilien/');
+                const isProject = link.url.includes('eugen.immo/projekte/');
+                let btnLabel;
+                if (link.label) {
+                    // Markdown link: use original label text
+                    btnLabel = escapeHtml(link.label);
+                } else if (isInserat) {
+                    btnLabel = '🏠 Inserat ansehen';
+                } else if (isProject) {
+                    btnLabel = '🏗️ Projekt ansehen';
+                } else {
+                    btnLabel = '🔗 Link öffnen';
+                }
+                html = html.replace(`__LINK_${idx}__`, `<a href="${link.url}" target="_blank" rel="noopener noreferrer" class="chat-link-btn">${btnLabel}</a>`);
             });
 
             return html;
