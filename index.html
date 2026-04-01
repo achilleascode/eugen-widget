@@ -782,9 +782,7 @@
             ? window.parent.innerWidth <= 480
             : window.innerWidth <= 480;
 
-        if (sessionStorage.getItem('eugen_help_bubble_dismissed') === 'true' && helpBubble) {
-            helpBubble.classList.add('hidden');
-        } else if (helpBubble && !isParentMobile) {
+        if (helpBubble && !isParentMobile) {
             // Step 1: After 1.5s, expand iframe so bubble has space
             setTimeout(() => {
                 notifyParentOfSize(false, true);
@@ -1542,7 +1540,18 @@
             if (widgetWindow.classList.contains('open')) {
                 // Close
                 widgetWindow.classList.remove('open');
-                setTimeout(() => notifyParentOfSize(false, false), 50);
+                // Show bubble again when chat closes (not on mobile)
+                if (helpBubble && !isParentMobile) {
+                    setTimeout(() => {
+                        notifyParentOfSize(false, true);
+                        setTimeout(() => {
+                            helpBubble.classList.remove('hidden');
+                            helpBubble.classList.add('visible');
+                        }, 200);
+                    }, 50);
+                } else {
+                    setTimeout(() => notifyParentOfSize(false, false), 50);
+                }
                 if (idleGreetingTimer) {
                     clearTimeout(idleGreetingTimer);
                     idleGreetingTimer = null;
@@ -1553,7 +1562,6 @@
                 if (helpBubble) {
                     helpBubble.classList.remove('visible');
                     helpBubble.classList.add('hidden');
-                    sessionStorage.setItem('eugen_help_bubble_dismissed', 'true');
                 }
                 notifyParentOfSize(true, false);
                 setTimeout(async () => {
@@ -1573,7 +1581,18 @@
         closeButton.addEventListener('click', () => {
             widgetWindow.classList.remove('open');
             widgetWindow.classList.remove('expanded');
-            setTimeout(() => notifyParentOfSize(false, false), 50);
+            // Show bubble again when chat closes (not on mobile)
+            if (helpBubble && !isParentMobile) {
+                setTimeout(() => {
+                    notifyParentOfSize(false, true);
+                    setTimeout(() => {
+                        helpBubble.classList.remove('hidden');
+                        helpBubble.classList.add('visible');
+                    }, 200);
+                }, 50);
+            } else {
+                setTimeout(() => notifyParentOfSize(false, false), 50);
+            }
             if (idleGreetingTimer) {
                 clearTimeout(idleGreetingTimer);
                 idleGreetingTimer = null;
@@ -1587,7 +1606,6 @@
                     await initWidget();
                     helpBubble.classList.remove('visible');
                     helpBubble.classList.add('hidden');
-                    sessionStorage.setItem('eugen_help_bubble_dismissed', 'true');
                     notifyParentOfSize(true, false);
                     setTimeout(async () => {
                         widgetWindow.classList.add('open');
