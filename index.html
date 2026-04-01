@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
     <title>Chat mit eugen!</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -110,6 +110,56 @@
 
         #notification-badge.show {
             display: flex;
+        }
+
+        /* Help Bubble */
+        .chat-help-bubble {
+            position: absolute;
+            bottom: 35px;
+            right: 85px;
+            background: white;
+            color: #333;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            white-space: nowrap;
+            z-index: 999;
+            animation: bubbleFadeIn 0.5s ease 2s both;
+            cursor: pointer;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .chat-help-bubble::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-left: 6px solid white;
+        }
+
+        .chat-help-bubble.hidden {
+            opacity: 0;
+            transform: translateX(10px);
+            pointer-events: none;
+        }
+
+        @keyframes bubbleFadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         #chat-widget-button:hover {
@@ -389,17 +439,21 @@
             overflow-x: hidden;
             color: black;
             font-size: 13px;
-            line-height: 1.5;
+            line-height: 1.45;
             hyphens: auto;
             -webkit-hyphens: auto;
         }
 
         .message-bubble p {
-            margin: 0 0 8px 0;
+            margin: 0 0 4px 0;
         }
 
         .message-bubble p:last-child {
             margin-bottom: 0;
+        }
+
+        .message.bot .message-bubble p + p {
+            margin-top: 2px;
         }
 
         .message-bubble .chat-link-btn {
@@ -492,7 +546,7 @@
             padding: 12px 16px;
             border: 1px solid #e0e0e0;
             border-radius: 24px;
-            font-size: 13px;
+            font-size: 16px;
             font-family: 'Inter', sans-serif;
             outline: none;
             transition: border-color 0.2s ease;
@@ -501,6 +555,12 @@
 
         #chat-input:focus {
             border-color: #14E1A7;
+        }
+
+        @supports (-webkit-touch-callout: none) {
+            #chat-input {
+                font-size: 16px;
+            }
         }
 
         #chat-send-button {
@@ -598,6 +658,10 @@
 
         /* Mobile Responsive */
         @media (max-width: 480px) {
+            .chat-help-bubble {
+                display: none !important;
+            }
+
             #chat-widget-window {
                 width: calc(100vw - 20px);
                 height: calc(100vh - 100px);
@@ -636,6 +700,10 @@
         </svg>
         <span id="notification-badge">1</span>
     </button>
+
+    <div id="chat-help-bubble" class="chat-help-bubble">
+        Wie kann ich dir helfen? 👋
+    </div>
 
     <!-- Chat Widget Window -->
     <div id="chat-widget-window">
@@ -712,6 +780,12 @@
         const messagesContainer = document.getElementById('chat-messages');
         const inputField = document.getElementById('chat-input');
         const sendButton = document.getElementById('chat-send-button');
+        const helpBubble = document.getElementById('chat-help-bubble');
+
+        // Hide help bubble if already dismissed this session
+        if (sessionStorage.getItem('eugen_help_bubble_dismissed') === 'true' && helpBubble) {
+            helpBubble.classList.add('hidden');
+        }
 
         // State
         let sessionId = null;
@@ -755,6 +829,11 @@
 
             // Load existing messages
             await loadMessages();
+
+            // Ensure chat is scrolled to bottom after loading
+            requestAnimationFrame(() => {
+                messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
+            });
 
             // Setup realtime subscription
             setupRealtimeSubscription();
@@ -927,14 +1006,17 @@
             links.forEach((link, idx) => {
                 const isInserat = link.url.includes('eugen.immo/immobilien/');
                 const isProject = link.url.includes('eugen.immo/projekte/');
+                const isEugenLink = link.url.includes('eugen.immo');
                 let btnLabel;
-                if (link.label) {
-                    // Markdown link: use original label text
-                    btnLabel = escapeHtml(link.label);
-                } else if (isInserat) {
-                    btnLabel = '🏠 Inserat ansehen';
+                if (isInserat) {
+                    btnLabel = 'Inserat';
                 } else if (isProject) {
-                    btnLabel = '🏗️ Projekt ansehen';
+                    btnLabel = 'Projekt';
+                } else if (isEugenLink) {
+                    btnLabel = 'eugen.immo';
+                } else if (link.label) {
+                    // Für externe Links: Markdown-Label verwenden
+                    btnLabel = escapeHtml(link.label);
                 } else {
                     btnLabel = '🔗 Link öffnen';
                 }
@@ -1087,7 +1169,13 @@
             }
 
             // Smooth scroll to bottom
-            messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
+            requestAnimationFrame(() => {
+                messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
+                // Fallback for images/fonts that load after initial render
+                setTimeout(() => {
+                    messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
+                }, 100);
+            });
 
             // Check for unread messages
             checkForUnreadMessages(messages);
@@ -1113,7 +1201,9 @@
             messagesContainer.appendChild(typingDiv);
 
             // Smooth scroll to bottom
-            messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
+            requestAnimationFrame(() => {
+                messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
+            });
         }
 
         // Check for Unread Messages
@@ -1368,7 +1458,7 @@
             const buttons = [
                 'Wohnung finden',
                 'Besichtigung buchen',
-                'Bewerbung f\u00FCr deine Traumwohnung'
+                'Bewerbung f\u00FCr MEINE Traumwohnung'
             ];
 
             buttons.forEach(text => {
@@ -1431,12 +1521,20 @@
             } else {
                 // Open – lazy init on first click (Cookie Szenario 1)
                 await initWidget();
+                if (helpBubble) {
+                    helpBubble.classList.add('hidden');
+                    sessionStorage.setItem('eugen_help_bubble_dismissed', 'true');
+                }
                 notifyParentOfSize(true);
                 setTimeout(async () => {
                     widgetWindow.classList.add('open');
                     notificationBadge.classList.remove('show');
                     widgetButton.classList.add('pulsing-disabled');
                     await loadMessages();
+                    // Scroll to bottom after opening so last message is visible
+                    setTimeout(() => {
+                        messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
+                    }, 50);
                     inputField.focus();
                 }, 100);
             }
@@ -1451,6 +1549,25 @@
                 idleGreetingTimer = null;
             }
         });
+
+        // Help Bubble click – open chat (same as widget button)
+        if (helpBubble) {
+            helpBubble.addEventListener('click', async () => {
+                if (!widgetWindow.classList.contains('open')) {
+                    await initWidget();
+                    helpBubble.classList.add('hidden');
+                    sessionStorage.setItem('eugen_help_bubble_dismissed', 'true');
+                    notifyParentOfSize(true);
+                    setTimeout(async () => {
+                        widgetWindow.classList.add('open');
+                        notificationBadge.classList.remove('show');
+                        widgetButton.classList.add('pulsing-disabled');
+                        await loadMessages();
+                        inputField.focus();
+                    }, 100);
+                }
+            });
+        }
 
         expandButton.addEventListener('click', () => {
             const isExpanded = widgetWindow.classList.toggle('expanded');
