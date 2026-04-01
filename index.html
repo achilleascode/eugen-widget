@@ -656,10 +656,6 @@
 
         /* Mobile Responsive */
         @media (max-width: 480px) {
-            .chat-help-bubble {
-                display: none !important;
-            }
-
             #chat-widget-window {
                 width: calc(100vw - 20px);
                 height: calc(100vh - 100px);
@@ -781,9 +777,14 @@
         const helpBubble = document.getElementById('chat-help-bubble');
 
         // Help bubble: expand iframe first, then fade in bubble
+        // Check parent viewport width to decide if mobile (bubble hidden on mobile)
+        const isParentMobile = window.parent !== window
+            ? window.parent.innerWidth <= 480
+            : window.innerWidth <= 480;
+
         if (sessionStorage.getItem('eugen_help_bubble_dismissed') === 'true' && helpBubble) {
             helpBubble.classList.add('hidden');
-        } else if (helpBubble) {
+        } else if (helpBubble && !isParentMobile) {
             // Step 1: After 1.5s, expand iframe so bubble has space
             setTimeout(() => {
                 notifyParentOfSize(false, true);
@@ -792,6 +793,9 @@
                     helpBubble.classList.add('visible');
                 }, 200);
             }, 1500);
+        } else if (helpBubble && isParentMobile) {
+            // On mobile: hide bubble permanently
+            helpBubble.classList.add('hidden');
         }
 
         // State
