@@ -329,6 +329,7 @@
             flex-direction: column;
             gap: 12px;
             position: relative;
+            -webkit-overflow-scrolling: touch;
         }
 
         #chat-messages::-webkit-scrollbar {
@@ -1049,6 +1050,33 @@
             return `<div class="bot-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="#14E1A7"/><rect x="11" y="3.5" width="6" height="12.5" rx="3" fill="white"/><circle cx="14" cy="15.5" r="2.6" fill="#CF003D"/><circle cx="14" cy="22" r="2.6" fill="black"/></svg></div>`;
         }
 
+        // Smooth scroll helper with easeInOutCubic for buttery animation
+        function smoothScrollTo(container, targetTop, duration = 500) {
+            const start = container.scrollTop;
+            const distance = targetTop - start;
+            let startTime = null;
+            function ease(t) {
+                return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+            }
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                container.scrollTop = start + distance * ease(progress);
+                if (progress < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        }
+
+        // Scroll to an element's top within the messages container
+        function scrollToMessage(element, duration = 500) {
+            if (!element) return;
+            const containerRect = messagesContainer.getBoundingClientRect();
+            const elementRect = element.getBoundingClientRect();
+            const targetTop = messagesContainer.scrollTop + (elementRect.top - containerRect.top) - 10; // 10px padding
+            smoothScrollTo(messagesContainer, targetTop, duration);
+        }
+
         // Track last rendered message count to avoid unnecessary re-renders
         let lastRenderedCount = 0;
         let lastRenderedHash = '';
@@ -1186,22 +1214,19 @@
                 if (typingEl) typingEl.remove();
             }
 
-            // Scroll to make the latest message visible
+            // Scroll to make the latest message visible (smooth easeInOutCubic)
             requestAnimationFrame(() => {
                 const allMessages = messagesContainer.querySelectorAll('.message:not(#eugen-greeting)');
                 const lastMsg = allMessages[allMessages.length - 1];
                 if (lastMsg) {
-                    // Scroll so the START of the new message is at the top of the viewport
-                    lastMsg.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    scrollToMessage(lastMsg, 600);
                 } else {
-                    messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
+                    smoothScrollTo(messagesContainer, messagesContainer.scrollHeight, 600);
                 }
-                // Fallback
+                // Fallback for late-loading content
                 setTimeout(() => {
-                    if (lastMsg) {
-                        lastMsg.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                }, 100);
+                    if (lastMsg) scrollToMessage(lastMsg, 300);
+                }, 150);
             });
 
             // Check for unread messages
@@ -1229,7 +1254,7 @@
 
             // Scroll typing indicator into view
             requestAnimationFrame(() => {
-                typingDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                scrollToMessage(typingDiv, 400);
             });
         }
 
