@@ -785,6 +785,9 @@
         // Hide help bubble if already dismissed this session
         if (sessionStorage.getItem('eugen_help_bubble_dismissed') === 'true' && helpBubble) {
             helpBubble.classList.add('hidden');
+        } else if (helpBubble) {
+            // Bubble is visible — request wider iframe from parent so bubble is not clipped
+            setTimeout(() => notifyParentOfSize(false, true), 2100); // after 2s animation delay + 100ms buffer
         }
 
         // State
@@ -1504,14 +1507,23 @@
         }
 
         // Notify parent window of size change
-        function notifyParentOfSize(isOpen) {
+        function notifyParentOfSize(isOpen, showBubble) {
             if (window.parent !== window) {
                 const isExpanded = widgetWindow.classList.contains('expanded');
+                let width = 100, height = 100;
+                if (isOpen) {
+                    width = isExpanded ? 620 : 400;
+                    height = isExpanded ? 900 : 650;
+                } else if (showBubble) {
+                    // Bubble needs extra space: button (60px) + gap + bubble (~250px)
+                    width = 360;
+                    height = 100;
+                }
                 window.parent.postMessage({
                     type: 'eugen-chat-resize',
                     isOpen: isOpen,
-                    width: isOpen ? (isExpanded ? 620 : 400) : 100,
-                    height: isOpen ? (isExpanded ? 900 : 650) : 100
+                    width: width,
+                    height: height
                 }, '*');
             }
         }
@@ -1522,7 +1534,7 @@
             if (widgetWindow.classList.contains('open')) {
                 // Close
                 widgetWindow.classList.remove('open');
-                setTimeout(() => notifyParentOfSize(false), 50);
+                setTimeout(() => notifyParentOfSize(false, false), 50);
                 if (idleGreetingTimer) {
                     clearTimeout(idleGreetingTimer);
                     idleGreetingTimer = null;
@@ -1534,7 +1546,7 @@
                     helpBubble.classList.add('hidden');
                     sessionStorage.setItem('eugen_help_bubble_dismissed', 'true');
                 }
-                notifyParentOfSize(true);
+                notifyParentOfSize(true, false);
                 setTimeout(async () => {
                     widgetWindow.classList.add('open');
                     notificationBadge.classList.remove('show');
@@ -1552,7 +1564,7 @@
         closeButton.addEventListener('click', () => {
             widgetWindow.classList.remove('open');
             widgetWindow.classList.remove('expanded');
-            setTimeout(() => notifyParentOfSize(false), 50);
+            setTimeout(() => notifyParentOfSize(false, false), 50);
             if (idleGreetingTimer) {
                 clearTimeout(idleGreetingTimer);
                 idleGreetingTimer = null;
