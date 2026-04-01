@@ -992,12 +992,21 @@
             // 5. Ungeordnete Listen (- item)
             html = html.replace(/^[-–]\s+(.+)$/gm, '<div style="display:flex;gap:6px;padding:2px 0;padding-left:4px;"><span>•</span><span>$1</span></div>');
 
+            // 5b. Collapse double newlines before/after list items to single newlines
+            // This prevents empty paragraphs between bullet points
+            html = html.replace(/\n\n+((?:<div style))/g, '\n$1');
+            html = html.replace(/(<\/div>)\n\n+/g, '$1\n');
+
             // 6. Absätze: doppelte Zeilenumbrüche
             html = html.replace(/\n\n+/g, '</p><p>');
             html = '<p>' + html + '</p>';
 
             // 7. Einfache Zeilenumbrüche
             html = html.replace(/\n/g, '<br>');
+
+            // 7b. Remove <br> tags directly before/after list divs (cleaner spacing)
+            html = html.replace(/<br>\s*(<div style)/g, '$1');
+            html = html.replace(/(<\/div>)\s*<br>/g, '$1');
 
             // 8. Leere Paragraphen entfernen
             html = html.replace(/<p>\s*<\/p>/g, '');

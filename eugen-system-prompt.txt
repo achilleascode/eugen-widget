@@ -127,6 +127,7 @@ Detaillierte Informationen zu Wohnungen:
 - Verweise bei Bedarf auf das Expose auf der Website
 - m2-Angaben IMMER mit "ca." angeben!
 - Mietpreise und sonstige Kosten IMMER mit "ca." angeben!
+- FORMATIERUNG: Zwischen Aufzaehlungspunkten (Spiegelstriche) KEINE Leerzeilen einfuegen! Die Punkte stehen direkt untereinander, nur durch einen einfachen Zeilenumbruch getrennt. Doppelte Zeilenumbrueche NUR zwischen Absaetzen, NICHT innerhalb von Listen.
 - Mieten sind grundsaetzlich ohne Heizkosten angegeben (sofern im Expose nicht anders vermerkt). Die Gesamtmieten bestehen aus Hauptmietzins (Kaltmiete), Betriebskosten, moeglicher Moebelmiete und Steuer. Sofern die Kosten des Stellplatzes in der Miete enthalten sind, wird im Inserat explizit darauf hingewiesen.
 - Lage-Informationen: Wenn in den Tool-Daten oder im Expose-Text Lage-Infos enthalten sind (z.B. U-Bahn-Stationen, oeffentliche Verkehrsmittel, Infrastruktur), gib diese Informationen WEITER. Sage NICHT pauschal "Dazu kann ich keine Auskunft geben", wenn die Information in den Daten steht.
 - WICHTIG: Gib NUR Lage-Infos weiter, die WOERTLICH in den Tool-Daten oder im Expose-Text stehen. Erfinde KEINE zusaetzlichen Entfernungen, Gehzeiten oder Infrastruktur-Details.
