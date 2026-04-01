@@ -127,9 +127,18 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             white-space: nowrap;
             z-index: 999;
-            animation: bubbleFadeIn 0.5s ease 2s both;
             cursor: pointer;
-            transition: opacity 0.3s ease, transform 0.3s ease;
+            /* Start invisible, JS controls show/hide */
+            opacity: 0;
+            transform: translateX(10px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            pointer-events: none;
+        }
+
+        .chat-help-bubble.visible {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
         }
 
         .chat-help-bubble::after {
@@ -146,20 +155,9 @@
         }
 
         .chat-help-bubble.hidden {
-            opacity: 0;
-            transform: translateX(10px);
-            pointer-events: none;
-        }
-
-        @keyframes bubbleFadeIn {
-            from {
-                opacity: 0;
-                transform: translateX(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+            opacity: 0 !important;
+            transform: translateX(10px) !important;
+            pointer-events: none !important;
         }
 
         #chat-widget-button:hover {
@@ -782,12 +780,18 @@
         const sendButton = document.getElementById('chat-send-button');
         const helpBubble = document.getElementById('chat-help-bubble');
 
-        // Hide help bubble if already dismissed this session
+        // Help bubble: expand iframe first, then fade in bubble
         if (sessionStorage.getItem('eugen_help_bubble_dismissed') === 'true' && helpBubble) {
             helpBubble.classList.add('hidden');
         } else if (helpBubble) {
-            // Bubble is visible — request wider iframe from parent so bubble is not clipped
-            setTimeout(() => notifyParentOfSize(false, true), 2100); // after 2s animation delay + 100ms buffer
+            // Step 1: After 1.5s, expand iframe so bubble has space
+            setTimeout(() => {
+                notifyParentOfSize(false, true);
+                // Step 2: After iframe is resized (200ms buffer), fade in bubble
+                setTimeout(() => {
+                    helpBubble.classList.add('visible');
+                }, 200);
+            }, 1500);
         }
 
         // State
@@ -1543,6 +1547,7 @@
                 // Open – lazy init on first click (Cookie Szenario 1)
                 await initWidget();
                 if (helpBubble) {
+                    helpBubble.classList.remove('visible');
                     helpBubble.classList.add('hidden');
                     sessionStorage.setItem('eugen_help_bubble_dismissed', 'true');
                 }
@@ -1576,9 +1581,10 @@
             helpBubble.addEventListener('click', async () => {
                 if (!widgetWindow.classList.contains('open')) {
                     await initWidget();
+                    helpBubble.classList.remove('visible');
                     helpBubble.classList.add('hidden');
                     sessionStorage.setItem('eugen_help_bubble_dismissed', 'true');
-                    notifyParentOfSize(true);
+                    notifyParentOfSize(true, false);
                     setTimeout(async () => {
                         widgetWindow.classList.add('open');
                         notificationBadge.classList.remove('show');
