@@ -1186,12 +1186,21 @@
                 if (typingEl) typingEl.remove();
             }
 
-            // Smooth scroll to bottom
+            // Scroll to make the latest message visible
             requestAnimationFrame(() => {
-                messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
-                // Fallback for images/fonts that load after initial render
-                setTimeout(() => {
+                const allMessages = messagesContainer.querySelectorAll('.message:not(#eugen-greeting)');
+                const lastMsg = allMessages[allMessages.length - 1];
+                if (lastMsg) {
+                    // Scroll so the START of the new message is at the top of the viewport
+                    lastMsg.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
                     messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
+                }
+                // Fallback
+                setTimeout(() => {
+                    if (lastMsg) {
+                        lastMsg.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
                 }, 100);
             });
 
@@ -1218,9 +1227,9 @@
             typingDiv.appendChild(bubbleDiv);
             messagesContainer.appendChild(typingDiv);
 
-            // Smooth scroll to bottom
+            // Scroll typing indicator into view
             requestAnimationFrame(() => {
-                messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'smooth' });
+                typingDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
         }
 
