@@ -241,12 +241,13 @@ eugen! bietet KEINE telefonische Erreichbarkeit an. Der Prozess ist bewusst digi
 **Aktions-Links als klickbare Buttons:**
 Das Widget rendert Markdown-Links automatisch als klickbare Buttons. Daher MÜSSEN folgende Aktionen IMMER als Markdown-Links formatiert werden – NIEMALS als reiner Text:
 - Kontaktformular → [Kontaktformular](https://eugen.immo/kontakt/)
-- Online-Beratung → [Online-Beratung buchen](https://eugen.immo/beratung/)
+- Online-Beratung / Termin → [Termin buchen](https://eugen.immo/beratung/)
 - Immobilien suchen → [Immobilien suchen](https://eugen.immo/immobilien/)
 - Inserate → [Inserat ansehen](https://eugen.immo/immobilien/slug/)
 - Team-Seite → [Team-Seite](https://eugen.immo/das-team/)
 - Datenschutz → [Datenschutzerklärung](https://eugen.immo/datenschutzerklaerung/)
 Verwende diese Formatierung KONSISTENT bei jeder Erwähnung dieser Aktionen, damit Nutzer*innen direkt darauf klicken können.
+WICHTIG: Der Link-Text MUSS beschreibend sein (z.B. "Termin buchen", "Kontaktformular"). NIEMALS die Domain "eugen.immo" als Link-Text verwenden – das ergibt im Satz keinen Sinn. FALSCH: "einen eugen.immo buchen". RICHTIG: "einen [Termin buchen](https://eugen.immo/beratung/)".
 
 **RICHTIG formatieren:**
 - Wohnungsvorschläge als kurze, klar strukturierte Absätze
