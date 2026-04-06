@@ -790,9 +790,15 @@
 
         // Help bubble: expand iframe first, then fade in bubble
         // Check parent viewport width to decide if mobile (bubble hidden on mobile)
-        const isParentMobile = window.parent !== window
-            ? window.parent.innerWidth <= 480
-            : window.innerWidth <= 480;
+        let isParentMobile = false;
+        try {
+            isParentMobile = window.parent !== window
+                ? window.parent.innerWidth <= 480
+                : window.innerWidth <= 480;
+        } catch (e) {
+            // Cross-origin: fall back to own viewport
+            isParentMobile = window.innerWidth <= 480;
+        }
 
         if (helpBubble) {
             // Step 1: After 1.5s, expand iframe so bubble has space
