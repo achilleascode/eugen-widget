@@ -845,22 +845,7 @@
                 console.log('Existing session loaded:', sessionId);
             }
 
-            // Load existing messages
-            await loadMessages();
-
-            // Ensure chat is scrolled to bottom after loading
-            // Use double rAF + setTimeout to wait for DOM render completion
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
-                    // Fallback for slow renders
-                    setTimeout(() => {
-                        messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
-                    }, 200);
-                });
-            });
-
-            // Setup realtime subscription
+            // Setup realtime subscription (messages are loaded when chat opens)
             setupRealtimeSubscription();
         }
 
@@ -1230,20 +1215,20 @@
                 if (typingEl) typingEl.remove();
             }
 
-            // Scroll to make the latest message visible (smooth easeInOutCubic)
-            requestAnimationFrame(() => {
-                const allMessages = messagesContainer.querySelectorAll('.message:not(#eugen-greeting)');
-                const lastMsg = allMessages[allMessages.length - 1];
-                if (lastMsg) {
-                    scrollToMessage(lastMsg, 600);
-                } else {
-                    smoothScrollTo(messagesContainer, messagesContainer.scrollHeight, 600);
-                }
-                // Fallback for late-loading content
-                setTimeout(() => {
-                    if (lastMsg) scrollToMessage(lastMsg, 300);
-                }, 150);
-            });
+            // Scroll to make the latest message visible — only if widget is open (visible)
+            if (widgetWindow.classList.contains('open')) {
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        const allMessages = messagesContainer.querySelectorAll('.message:not(#eugen-greeting)');
+                        const lastMsg = allMessages[allMessages.length - 1];
+                        if (lastMsg) {
+                            scrollToMessage(lastMsg, 400);
+                        } else {
+                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        }
+                    });
+                });
+            }
 
             // Check for unread messages
             checkForUnreadMessages(messages);
@@ -1636,14 +1621,12 @@
                     notificationBadge.classList.remove('show');
                     widgetButton.classList.add('pulsing-disabled');
                     await loadMessages();
-                    // Scroll to bottom after opening so last message is visible
-                    setTimeout(() => {
-                        messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
-                        // Extra fallback for slow DOM rendering
-                        setTimeout(() => {
-                            messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
-                        }, 200);
-                    }, 50);
+                    // Scroll to bottom AFTER .open + loadMessages — double rAF guarantees layout pass
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        });
+                    });
                     inputField.focus();
                 }, 100);
             }
@@ -1683,6 +1666,12 @@
                         notificationBadge.classList.remove('show');
                         widgetButton.classList.add('pulsing-disabled');
                         await loadMessages();
+                        // Scroll to bottom after layout pass
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                            });
+                        });
                         inputField.focus();
                     }, 100);
                 }
