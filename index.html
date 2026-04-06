@@ -682,6 +682,17 @@
                 width: 22px;
                 height: 22px;
             }
+
+            /* Mobile: kompakte Help-Bubble */
+            .chat-help-bubble {
+                bottom: 28px;
+                right: 70px;
+                padding: 7px 12px;
+                font-size: 12px;
+                border-radius: 16px;
+                max-width: 160px;
+                white-space: normal;
+            }
         }
     </style>
 </head>
@@ -783,7 +794,7 @@
             ? window.parent.innerWidth <= 480
             : window.innerWidth <= 480;
 
-        if (helpBubble && !isParentMobile) {
+        if (helpBubble) {
             // Step 1: After 1.5s, expand iframe so bubble has space
             setTimeout(() => {
                 notifyParentOfSize(false, true);
@@ -792,9 +803,6 @@
                     helpBubble.classList.add('visible');
                 }, 200);
             }, 1500);
-        } else if (helpBubble && isParentMobile) {
-            // On mobile: hide bubble permanently
-            helpBubble.classList.add('hidden');
         }
 
         // State
@@ -841,8 +849,15 @@
             await loadMessages();
 
             // Ensure chat is scrolled to bottom after loading
+            // Use double rAF + setTimeout to wait for DOM render completion
             requestAnimationFrame(() => {
-                messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
+                requestAnimationFrame(() => {
+                    messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
+                    // Fallback for slow renders
+                    setTimeout(() => {
+                        messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
+                    }, 200);
+                });
             });
 
             // Setup realtime subscription
@@ -1210,6 +1225,7 @@
             } else if (lastMessage && (lastMessage.type === 'bot' || lastMessage.type === 'human')) {
                 isWaitingForResponse = false;
                 if (responseTimeout) { clearTimeout(responseTimeout); responseTimeout = null; }
+                if (typingSlowTimer) { clearTimeout(typingSlowTimer); typingSlowTimer = null; }
                 const typingEl = document.getElementById('typing-indicator');
                 if (typingEl) typingEl.remove();
             }
@@ -1234,12 +1250,14 @@
         }
 
         // Show Typing Indicator
+        let typingSlowTimer = null;
         function showTypingIndicator() {
             // Remove existing typing indicator if any
             const existingIndicator = document.getElementById('typing-indicator');
             if (existingIndicator) {
                 existingIndicator.remove();
             }
+            if (typingSlowTimer) { clearTimeout(typingSlowTimer); typingSlowTimer = null; }
 
             const typingDiv = document.createElement('div');
             typingDiv.id = 'typing-indicator';
@@ -1251,6 +1269,17 @@
 
             typingDiv.appendChild(bubbleDiv);
             messagesContainer.appendChild(typingDiv);
+
+            // After 6s, change text to "dauert noch einen Moment"
+            typingSlowTimer = setTimeout(() => {
+                const indicator = document.getElementById('typing-indicator');
+                if (indicator) {
+                    const textEl = indicator.querySelector('.typing-indicator-text');
+                    if (textEl) {
+                        textEl.innerHTML = '<span class="typing-name">eugen!</span> \u2014 dauert noch einen Moment <span class="typing-dots"><span></span><span></span><span></span></span>';
+                    }
+                }
+            }, 6000);
 
             // Scroll typing indicator into view
             requestAnimationFrame(() => {
@@ -1357,6 +1386,7 @@
             if (responseTimeout) clearTimeout(responseTimeout);
             responseTimeout = setTimeout(() => {
                 if (isWaitingForResponse) {
+                    if (typingSlowTimer) { clearTimeout(typingSlowTimer); typingSlowTimer = null; }
                     const typingEl = document.getElementById('typing-indicator');
                     if (typingEl) typingEl.remove();
                     const errorDiv = document.createElement('div');
@@ -1412,6 +1442,7 @@
                 // the optimistic UI (user message + typing indicator).
             } catch (err) {
                 console.error('Error sending message:', err);
+                if (typingSlowTimer) { clearTimeout(typingSlowTimer); typingSlowTimer = null; }
                 const typingEl = document.getElementById('typing-indicator');
                 if (typingEl) typingEl.remove();
                 isWaitingForResponse = false;
@@ -1555,8 +1586,10 @@
                     width = isExpanded ? 620 : 400;
                     height = isExpanded ? 900 : 650;
                 } else if (showBubble) {
-                    // Bubble needs extra space: button (60px) + gap + bubble (~250px)
-                    width = 360;
+                    // Bubble needs extra space: button (60px) + gap + bubble
+                    // Smaller on mobile to prevent overflow
+                    const isMobile = window.innerWidth <= 480;
+                    width = isMobile ? 280 : 360;
                     height = 100;
                 }
                 window.parent.postMessage({
@@ -1575,7 +1608,7 @@
                 // Close
                 widgetWindow.classList.remove('open');
                 // Show bubble again when chat closes (not on mobile)
-                if (helpBubble && !isParentMobile) {
+                if (helpBubble) {
                     setTimeout(() => {
                         notifyParentOfSize(false, true);
                         setTimeout(() => {
@@ -1606,6 +1639,10 @@
                     // Scroll to bottom after opening so last message is visible
                     setTimeout(() => {
                         messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
+                        // Extra fallback for slow DOM rendering
+                        setTimeout(() => {
+                            messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
+                        }, 200);
                     }, 50);
                     inputField.focus();
                 }, 100);
@@ -1616,7 +1653,7 @@
             widgetWindow.classList.remove('open');
             widgetWindow.classList.remove('expanded');
             // Show bubble again when chat closes (not on mobile)
-            if (helpBubble && !isParentMobile) {
+            if (helpBubble) {
                 setTimeout(() => {
                     notifyParentOfSize(false, true);
                     setTimeout(() => {
