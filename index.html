@@ -763,7 +763,7 @@
             </button>
         </div>
         <div id="chat-legal-disclaimer">
-            <p>Dieser Chat wird von einer KI betrieben und dient der allgemeinen Information. Er ersetzt keine verbindliche rechtliche Beratung.</p>
+            <p>Dieser Chat wird von einer k&uuml;nstlichen Intelligenz betrieben und dient der allgemeinen Information. Er ersetzt keine verbindliche rechtliche Beratung.</p>
             <p>Die Eingabe personenbezogener Daten ist <strong>nicht zwingend erforderlich</strong>. <a href="https://eugen.immo/datenschutzerklaerung/" target="_blank" rel="noopener noreferrer">Datenschutzerkl&auml;rung</a></p>
         </div>
     </div>
@@ -1249,6 +1249,10 @@
                 setTimeout(() => {
                     if (lastMsg) scrollToMessage(lastMsg, 300);
                 }, 150);
+                // Extra fallback for page refresh scenarios
+                setTimeout(() => {
+                    messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
+                }, 1000);
             });
 
             // Check for unread messages
@@ -1509,7 +1513,7 @@
 
             const bubbleDiv = document.createElement('div');
             bubbleDiv.className = 'message-bubble';
-            bubbleDiv.textContent = 'Hallo! \u{1F44B} Ich bin eugen, dein KI-Agent. Ich unterst\u00FCtze dich rund um die Uhr bei der Wohnungssuche, Besichtigungen und dem Anmietungsprozess.';
+            bubbleDiv.textContent = 'Hallo! \u{1F44B} Ich bin eugen!, dein KI-Agent. Ich unterst\u00FCtze dich rund um die Uhr bei der Wohnungssuche, Besichtigungen und dem Anmietungsprozess.';
 
             const timestampDiv = document.createElement('div');
             timestampDiv.className = 'message-timestamp';
@@ -1545,9 +1549,9 @@
             container.className = 'starter-buttons';
 
             const buttons = [
-                'Wohnung finden',
-                'Besichtigung buchen',
-                'Bewerbung f\u00FCr MEINE Traumwohnung'
+                'Wohnung finden \u{1F3E0}\u{1F50D}',
+                'Besichtigung buchen \u{1F4C5}',
+                'Bewerbung f\u00FCr meine Traumwohnung \u{1F4CB}'
             ];
 
             buttons.forEach(text => {
@@ -1689,6 +1693,13 @@
                         notificationBadge.classList.remove('show');
                         widgetButton.classList.add('pulsing-disabled');
                         await loadMessages();
+                        // Scroll to bottom after opening
+                        setTimeout(() => {
+                            messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
+                            setTimeout(() => {
+                                messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
+                            }, 200);
+                        }, 50);
                         inputField.focus();
                     }, 100);
                 }
