@@ -854,14 +854,14 @@
             // Load existing messages
             await loadMessages();
 
-            // Ensure chat is scrolled to bottom after loading
+            // Ensure chat is scrolled to start of last message after loading
             // Use double rAF + setTimeout to wait for DOM render completion
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                    messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
+                    scrollToLastMessage(false);
                     // Fallback for slow renders
                     setTimeout(() => {
-                        messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
+                        scrollToLastMessage(false);
                     }, 200);
                 });
             });
@@ -1098,6 +1098,25 @@
             smoothScrollTo(messagesContainer, targetTop, duration);
         }
 
+        // Scroll to the START of the last message (not the absolute bottom)
+        // If no messages exist (greeting only), scroll to bottom
+        function scrollToLastMessage(animated) {
+            const allMessages = messagesContainer.querySelectorAll('.message:not(#eugen-greeting)');
+            const lastMsg = allMessages[allMessages.length - 1];
+            if (lastMsg) {
+                const containerRect = messagesContainer.getBoundingClientRect();
+                const elementRect = lastMsg.getBoundingClientRect();
+                const targetTop = messagesContainer.scrollTop + (elementRect.top - containerRect.top) - 10;
+                if (animated) {
+                    smoothScrollTo(messagesContainer, targetTop, 400);
+                } else {
+                    messagesContainer.scrollTop = targetTop;
+                }
+            } else {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+
         // Track last rendered message count to avoid unnecessary re-renders
         let lastRenderedCount = 0;
         let lastRenderedHash = '';
@@ -1236,22 +1255,16 @@
                 if (typingEl) typingEl.remove();
             }
 
-            // Scroll to make the latest message visible (smooth easeInOutCubic)
+            // Scroll to start of latest message (smooth easeInOutCubic)
             requestAnimationFrame(() => {
-                const allMessages = messagesContainer.querySelectorAll('.message:not(#eugen-greeting)');
-                const lastMsg = allMessages[allMessages.length - 1];
-                if (lastMsg) {
-                    scrollToMessage(lastMsg, 600);
-                } else {
-                    smoothScrollTo(messagesContainer, messagesContainer.scrollHeight, 600);
-                }
+                scrollToLastMessage(true);
                 // Fallback for late-loading content
                 setTimeout(() => {
-                    if (lastMsg) scrollToMessage(lastMsg, 300);
+                    scrollToLastMessage(false);
                 }, 150);
                 // Extra fallback for page refresh scenarios
                 setTimeout(() => {
-                    messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
+                    scrollToLastMessage(false);
                 }, 1000);
             });
 
@@ -1646,12 +1659,12 @@
                     notificationBadge.classList.remove('show');
                     widgetButton.classList.add('pulsing-disabled');
                     await loadMessages();
-                    // Scroll to bottom after opening so last message is visible
+                    // Scroll to start of last message after opening
                     setTimeout(() => {
-                        messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
+                        scrollToLastMessage(false);
                         // Extra fallback for slow DOM rendering
                         setTimeout(() => {
-                            messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
+                            scrollToLastMessage(false);
                         }, 200);
                     }, 50);
                     inputField.focus();
@@ -1693,11 +1706,11 @@
                         notificationBadge.classList.remove('show');
                         widgetButton.classList.add('pulsing-disabled');
                         await loadMessages();
-                        // Scroll to bottom after opening
+                        // Scroll to start of last message after opening
                         setTimeout(() => {
-                            messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
+                            scrollToLastMessage(false);
                             setTimeout(() => {
-                                messagesContainer.scrollTo({ top: messagesContainer.scrollHeight, behavior: 'auto' });
+                                scrollToLastMessage(false);
                             }, 200);
                         }, 50);
                         inputField.focus();
