@@ -1101,6 +1101,9 @@
         // Scroll to the START of the last message (not the absolute bottom)
         // If no messages exist (greeting only), scroll to bottom
         function scrollToLastMessage(animated) {
+            // Guard: getBoundingClientRect() returns zeros on display:none elements
+            if (!widgetWindow.classList.contains('open')) return;
+
             const allMessages = messagesContainer.querySelectorAll('.message:not(#eugen-greeting)');
             const lastMsg = allMessages[allMessages.length - 1];
             if (lastMsg) {
@@ -1258,14 +1261,10 @@
             // Scroll to start of latest message (smooth easeInOutCubic)
             requestAnimationFrame(() => {
                 scrollToLastMessage(true);
-                // Fallback for late-loading content
+                // Single fallback for late-loading content
                 setTimeout(() => {
                     scrollToLastMessage(false);
-                }, 150);
-                // Extra fallback for page refresh scenarios
-                setTimeout(() => {
-                    scrollToLastMessage(false);
-                }, 1000);
+                }, 200);
             });
 
             // Check for unread messages
@@ -1654,19 +1653,15 @@
                     helpBubble.classList.add('hidden');
                 }
                 notifyParentOfSize(true, false);
-                setTimeout(async () => {
+                setTimeout(() => {
                     widgetWindow.classList.add('open');
                     notificationBadge.classList.remove('show');
                     widgetButton.classList.add('pulsing-disabled');
-                    await loadMessages();
-                    // Scroll to start of last message after opening
-                    setTimeout(() => {
+                    // Window is now visible — safe to scroll
+                    requestAnimationFrame(() => {
                         scrollToLastMessage(false);
-                        // Extra fallback for slow DOM rendering
-                        setTimeout(() => {
-                            scrollToLastMessage(false);
-                        }, 200);
-                    }, 50);
+                        setTimeout(() => scrollToLastMessage(false), 200);
+                    });
                     inputField.focus();
                 }, 100);
             }
@@ -1701,18 +1696,15 @@
                     helpBubble.classList.remove('visible');
                     helpBubble.classList.add('hidden');
                     notifyParentOfSize(true, false);
-                    setTimeout(async () => {
+                    setTimeout(() => {
                         widgetWindow.classList.add('open');
                         notificationBadge.classList.remove('show');
                         widgetButton.classList.add('pulsing-disabled');
-                        await loadMessages();
-                        // Scroll to start of last message after opening
-                        setTimeout(() => {
+                        // Window is now visible — safe to scroll
+                        requestAnimationFrame(() => {
                             scrollToLastMessage(false);
-                            setTimeout(() => {
-                                scrollToLastMessage(false);
-                            }, 200);
-                        }, 50);
+                            setTimeout(() => scrollToLastMessage(false), 200);
+                        });
                         inputField.focus();
                     }, 100);
                 }
