@@ -889,7 +889,7 @@
                     }
                     renderMessages([]);
                     // Show greeting immediately if no conversation exists
-                    if (!idleGreetingShown && widgetWindow.classList.contains('open')) {
+                    if (!idleGreetingShown) {
                         showIdleGreeting();
                     }
                     return;
@@ -916,7 +916,7 @@
                     console.log('No message_history in response');
                     renderMessages([]);
                     // Show greeting immediately if no messages
-                    if (!idleGreetingShown && widgetWindow.classList.contains('open')) {
+                    if (!idleGreetingShown) {
                         showIdleGreeting();
                     }
                 }
@@ -924,7 +924,7 @@
                 console.error('Exception loading messages:', err);
                 renderMessages([]);
                 // Show greeting immediately on error
-                if (!idleGreetingShown && widgetWindow.classList.contains('open')) {
+                if (!idleGreetingShown) {
                     showIdleGreeting();
                 }
             }
