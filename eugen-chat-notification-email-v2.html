@@ -1,0 +1,82 @@
+<!--
+  eugen! – E-Mail-Template v2 für Anfrage-Weiterleitung an hallo@eugen.at
+  ----------------------------------------------------------------------------
+  Löst das alte Template (eugen-chat-notification-email.html) ab, das nur die
+  Roh-Nachricht + den JSON-Verlauf gedumpt hat. Dieses Template rendert eine
+  saubere, leserliche Übersicht.
+
+  ZUM EINBAU IN n8n (E-Mail-Node der Weiterleitung):
+  Der KI-Agent ruft das Tool "Anfrage weiterleiten" mit den Feldern
+  name, email und anliegen auf. Mappe die Platzhalter unten auf die
+  tatsächlichen Tool-/Node-Ausgaben deiner Workflow-Struktur, z.B.:
+    {{NAME}}       → {{ $json.name }}        (vollständiger Name)
+    {{EMAIL}}      → {{ $json.email }}       (E-Mail der Person)
+    {{ANLIEGEN}}   → {{ $json.anliegen }}    (vom Agenten erstellte Zusammenfassung)
+    {{SESSION_ID}} → {{ $('Webhook').item.json.body.session_id }}
+    {{ZEIT}}       → {{ $now.setZone('Europe/Vienna').toFormat('dd.MM.yyyy HH:mm') }}
+  Betreff-Vorschlag: "Neue Chat-Anfrage von {{NAME}} – eugen! KI-Agent"
+-->
+<div style="margin:0;padding:0;background:#f4f6f8;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f8;padding:24px 0;font-family:'Inter',Arial,Helvetica,sans-serif;color:#1a1a1a;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:#14E1A7;padding:20px 28px;">
+              <span style="font-size:22px;font-weight:800;color:#0a0a0a;letter-spacing:-0.5px;">eugen!</span>
+              <span style="display:inline-block;margin-left:8px;font-size:14px;color:#0a3b30;vertical-align:middle;">KI-Agent · neue Chat-Anfrage</span>
+            </td>
+          </tr>
+
+          <!-- Intro -->
+          <tr>
+            <td style="padding:26px 28px 8px 28px;">
+              <p style="margin:0 0 4px 0;font-size:16px;font-weight:600;">Neue Anfrage über den eugen! KI-Agenten</p>
+              <p style="margin:0;font-size:14px;color:#555;">Eine Person möchte über den Chat mit dem Team in Kontakt treten. Die Details:</p>
+            </td>
+          </tr>
+
+          <!-- Kontaktdaten -->
+          <tr>
+            <td style="padding:18px 28px 0 28px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e6e9ec;border-radius:10px;">
+                <tr>
+                  <td style="padding:14px 16px;border-bottom:1px solid #eef1f3;font-size:13px;color:#888;width:140px;vertical-align:top;">Name</td>
+                  <td style="padding:14px 16px;border-bottom:1px solid #eef1f3;font-size:15px;font-weight:600;">{{NAME}}</td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 16px;border-bottom:1px solid #eef1f3;font-size:13px;color:#888;vertical-align:top;">E-Mail</td>
+                  <td style="padding:14px 16px;border-bottom:1px solid #eef1f3;font-size:15px;">
+                    <a href="mailto:{{EMAIL}}" style="color:#0a8f6c;font-weight:600;text-decoration:none;">{{EMAIL}}</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 16px;font-size:13px;color:#888;vertical-align:top;">Anliegen</td>
+                  <td style="padding:14px 16px;font-size:15px;line-height:1.5;">{{ANLIEGEN}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- CTA -->
+          <tr>
+            <td style="padding:20px 28px 4px 28px;">
+              <a href="mailto:{{EMAIL}}" style="display:inline-block;background:#14E1A7;color:#0a0a0a;font-size:14px;font-weight:700;text-decoration:none;padding:11px 22px;border-radius:8px;">Direkt antworten</a>
+            </td>
+          </tr>
+
+          <!-- Meta -->
+          <tr>
+            <td style="padding:18px 28px 26px 28px;">
+              <p style="margin:0;font-size:12px;color:#9aa3ab;">Session-ID: {{SESSION_ID}} &nbsp;·&nbsp; Eingegangen: {{ZEIT}}</p>
+              <p style="margin:8px 0 0 0;font-size:12px;color:#9aa3ab;">Diese E-Mail wurde automatisch vom eugen! KI-Agenten gesendet.</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>

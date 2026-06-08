@@ -710,7 +710,7 @@
     </button>
 
     <div id="chat-help-bubble" class="chat-help-bubble">
-        Wie kann ich dir helfen? 👋
+        Hey 👋
     </div>
 
     <!-- Chat Widget Window -->
@@ -1093,6 +1093,8 @@
                     btnLabel = 'FAQ';
                 } else if (link.url.includes('eugen.immo')) {
                     btnLabel = 'Mehr auf eugen.immo';
+                } else if (/(?:www\.)?google\.[a-z.]+\/maps|maps\.google\.|maps\.app\.goo\.gl/.test(link.url)) {
+                    btnLabel = '📍 Auf Google Maps ansehen';
                 } else {
                     btnLabel = '🔗 Link öffnen';
                 }
