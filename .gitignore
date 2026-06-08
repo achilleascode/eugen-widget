@@ -8,3 +8,6 @@
 .vscode/
 .idea/
 .vercel
+
+# Lokaler memsearch-Index (gehört nicht ins Repo)
+.memsearch/
