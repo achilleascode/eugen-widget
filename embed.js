@@ -1,21 +1,53 @@
 document.addEventListener('DOMContentLoaded', function () {
+  // Sprache der Host-Seite erkennen (eugen.immo nutzt WPML) und ans Widget weitergeben.
+  // Der iframe (Vercel) ist cross-origin und kann die Parent-Sprache NICHT selbst lesen,
+  // daher wird sie hier als ?lang=-Parameter in die iframe-URL übergeben.
+  function detectLang() {
+    try {
+      var htmlLang = (document.documentElement.getAttribute('lang') || '').toLowerCase();
+      if (htmlLang.indexOf('en') === 0) return 'en';
+      if (htmlLang.indexOf('de') === 0) return 'de';
+      // Fallback: WPML-Pfadpraefix /en/
+      if (/^\/en(\/|$)/i.test(location.pathname)) return 'en';
+      return 'de';
+    } catch (e) {
+      return 'de';
+    }
+  }
+  var lang = detectLang();
+
+  // Kritische Layout-Properties mit !important, damit globales Host-CSS
+  // (WordPress-Themes setzen oft `iframe { max-width:100%; height:auto }`)
+  // den Widget-iframe NICHT verformen oder abschneiden kann.
   var style = document.createElement('style');
   style.textContent = [
     '#eugen-chat-widget {',
-    '  position: fixed;',
-    '  bottom: 20px;',
-    '  right: 20px;',
-    '  width: 100px;',
-    '  height: 100px;',
-    '  border: 0;',
-    '  z-index: 999999;',
-    '  background: transparent;',
+    '  position: fixed !important;',
+    '  bottom: 20px !important;',
+    '  right: 20px !important;',
+    '  top: auto !important;',
+    '  left: auto !important;',
+    '  width: 120px !important;',
+    '  height: 120px !important;',
+    '  max-width: none !important;',
+    '  max-height: none !important;',
+    '  min-width: 0 !important;',
+    '  min-height: 0 !important;',
+    '  margin: 0 !important;',
+    '  padding: 0 !important;',
+    '  border: 0 !important;',
+    '  border-radius: 0 !important;',
+    '  box-shadow: none !important;',
+    '  clip-path: none !important;',
+    '  transform: none !important;',
+    '  z-index: 2147483647 !important;',
+    '  background: transparent !important;',
     '  transition: bottom 0.25s ease, right 0.25s ease, width 0.25s ease, height 0.25s ease;',
     '}',
     '@media (max-width: 480px) {',
     '  #eugen-chat-widget {',
-    '    bottom: 90px;',
-    '    right: 12px;',
+    '    bottom: 90px !important;',
+    '    right: max(12px, env(safe-area-inset-right)) !important;',
     '  }',
     '}',
     '#eugen-chat-widget.eugen-open-mobile {',
@@ -29,9 +61,10 @@ document.addEventListener('DOMContentLoaded', function () {
   document.head.appendChild(style);
 
   var iframe = document.createElement('iframe');
-  iframe.src = 'https://eugen-widget.vercel.app/index.html';
+  iframe.src = 'https://eugen-widget.vercel.app/index.html?lang=' + lang;
   iframe.id = 'eugen-chat-widget';
   iframe.setAttribute('allowtransparency', 'true');
+  iframe.setAttribute('title', lang === 'en' ? 'eugen! chat' : 'eugen! Chat');
   document.body.appendChild(iframe);
 
   var savedScrollY = 0;
@@ -76,8 +109,10 @@ document.addEventListener('DOMContentLoaded', function () {
     } else {
       iframe.classList.remove('eugen-open-mobile');
       unlockBodyScroll();
-      iframe.style.width = e.data.width + 'px';
-      iframe.style.height = e.data.height + 'px';
+      // Inline mit !important, damit es das collapsed-CSS (width/height !important,
+      // das gegen Host-Theme-CSS schuetzt) beim Oeffnen/Bubble ueberschreiben kann.
+      iframe.style.setProperty('width', e.data.width + 'px', 'important');
+      iframe.style.setProperty('height', e.data.height + 'px', 'important');
     }
   });
 });

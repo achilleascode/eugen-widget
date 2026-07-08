@@ -53,8 +53,8 @@
         /* Chat Widget Button */
         #chat-widget-button {
             position: absolute;
-            bottom: 20px;
-            right: 20px;
+            bottom: 16px;
+            right: 16px;
             width: 60px;
             height: 60px;
             border-radius: 50%;
@@ -81,7 +81,7 @@
             }
             50% {
                 box-shadow: 0 4px 12px rgba(20, 225, 167, 0.4),
-                            0 0 0 14px rgba(20, 225, 167, 0);
+                            0 0 0 8px rgba(20, 225, 167, 0);
             }
             100% {
                 box-shadow: 0 4px 12px rgba(20, 225, 167, 0.4),
@@ -780,6 +780,66 @@
         // Initialize Supabase Client
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // ----- i18n: Sprache aus dem ?lang=-Parameter (von embed.js gesetzt), Default Deutsch -----
+        const LANG = (new URLSearchParams(window.location.search).get('lang') === 'en') ? 'en' : 'de';
+        document.documentElement.lang = LANG;
+
+        const I18N = {
+            de: {
+                bubble: 'Hey \u{1F44B}',
+                greeting: 'Hallo! \u{1F44B} Ich bin eugen!, dein KI-Agent. Ich unterstütze dich rund um die Uhr bei der Wohnungssuche, Besichtigungen und dem Anmietungsprozess.',
+                starters: [
+                    'Wohnung finden \u{1F3E0}\u{1F50D}',
+                    'Besichtigung buchen \u{1F4C5}',
+                    'Bewerbung für deine Traumwohnung \u{1F4CB}'
+                ],
+                placeholder: 'Nachricht eingeben...',
+                labelUser: 'Du',
+                typing: 'schreibt',
+                typingSlow: 'arbeitet',
+                timeoutError: 'Entschuldigung, die Antwort dauert leider zu lange. Bitte versuche es erneut oder kontaktiere uns unter hallo@eugen.at.',
+                sendError: 'Fehler beim Senden. Bitte versuche es erneut.',
+                disclaimer: 'Dieser Chat wird von einer künstlichen Intelligenz betrieben und dient der allgemeinen Information. Er ersetzt keine verbindliche rechtliche Beratung.',
+                privacyPre: 'Die Eingabe personenbezogener Daten ist ',
+                privacyStrong: 'nicht zwingend erforderlich',
+                privacyLinkText: 'Datenschutzerklärung',
+                privacyUrl: 'https://eugen.immo/datenschutzerklaerung/',
+                ariaOpen: 'Chat öffnen',
+                ariaExpand: 'Chat vergrößern',
+                ariaCollapse: 'Chat verkleinern',
+                ariaClose: 'Chat schließen',
+                ariaSend: 'Nachricht senden',
+                dateLocale: 'de-DE'
+            },
+            en: {
+                bubble: 'How can I help you? \u{1F44B}',
+                greeting: 'Hi! \u{1F44B} I’m eugen!, your AI agent. I’m here around the clock to help you find a home, book viewings and navigate the whole rental process.',
+                starters: [
+                    'Find a home \u{1F3E0}\u{1F50D}',
+                    'Book a viewing \u{1F4C5}',
+                    'Apply for your dream home \u{1F4CB}'
+                ],
+                placeholder: 'Type a message...',
+                labelUser: 'You',
+                typing: 'is typing',
+                typingSlow: 'is working',
+                timeoutError: 'Sorry, this is taking longer than expected. Please try again or contact us at hallo@eugen.at.',
+                sendError: 'Failed to send. Please try again.',
+                disclaimer: 'This chat is powered by artificial intelligence and provides general information only. It is not a substitute for binding legal advice.',
+                privacyPre: 'Entering personal data is ',
+                privacyStrong: 'not required',
+                privacyLinkText: 'Privacy Policy',
+                privacyUrl: 'https://eugen.immo/datenschutzerklaerung/',
+                ariaOpen: 'Open chat',
+                ariaExpand: 'Enlarge chat',
+                ariaCollapse: 'Shrink chat',
+                ariaClose: 'Close chat',
+                ariaSend: 'Send message',
+                dateLocale: 'en-GB'
+            }
+        };
+        const T = I18N[LANG];
+
         // DOM Elements
         const widgetButton = document.getElementById('chat-widget-button');
         const widgetWindow = document.getElementById('chat-widget-window');
@@ -789,6 +849,21 @@
         const inputField = document.getElementById('chat-input');
         const sendButton = document.getElementById('chat-send-button');
         const helpBubble = document.getElementById('chat-help-bubble');
+
+        // Statische UI-Texte lokalisieren (Bubble ist opacity:0 bis zum Einblenden -> kein Flackern)
+        if (helpBubble) helpBubble.textContent = T.bubble;
+        inputField.placeholder = T.placeholder;
+        widgetButton.setAttribute('aria-label', T.ariaOpen);
+        expandButton.setAttribute('aria-label', T.ariaExpand);
+        closeButton.setAttribute('aria-label', T.ariaClose);
+        sendButton.setAttribute('aria-label', T.ariaSend);
+        const legalDisclaimerEl = document.getElementById('chat-legal-disclaimer');
+        if (legalDisclaimerEl) {
+            legalDisclaimerEl.innerHTML =
+                '<p>' + T.disclaimer + '</p>' +
+                '<p>' + T.privacyPre + '<strong>' + T.privacyStrong + '</strong>. ' +
+                '<a href="' + T.privacyUrl + '" target="_blank" rel="noopener noreferrer">' + T.privacyLinkText + '</a></p>';
+        }
 
         // iOS-Scroll-Lock: Touchmoves außerhalb der Messages-Liste blockieren,
         // damit das Wischen auf Header/Input nicht den Parent-Viewport scrollt.
@@ -1181,7 +1256,7 @@
             } else if (messageType === 'human') {
                 labelDiv.textContent = 'eugen! Team';
             } else if (messageType === 'user') {
-                labelDiv.textContent = 'Du';
+                labelDiv.textContent = T.labelUser;
             } else {
                 labelDiv.textContent = messageType.charAt(0).toUpperCase() + messageType.slice(1);
             }
@@ -1325,7 +1400,7 @@
 
             const bubbleDiv = document.createElement('div');
             bubbleDiv.className = 'message-bubble';
-            bubbleDiv.innerHTML = '<div class="typing-indicator-text"><span class="typing-name">eugen!</span> schreibt <span class="typing-dots"><span></span><span></span><span></span></span></div>';
+            bubbleDiv.innerHTML = '<div class="typing-indicator-text"><span class="typing-name">eugen!</span> ' + T.typing + ' <span class="typing-dots"><span></span><span></span><span></span></span></div>';
 
             typingDiv.appendChild(bubbleDiv);
             messagesContainer.appendChild(typingDiv);
@@ -1336,7 +1411,7 @@
                 if (indicator) {
                     const textEl = indicator.querySelector('.typing-indicator-text');
                     if (textEl) {
-                        textEl.innerHTML = '<span class="typing-name">eugen!</span> arbeitet <span class="typing-dots"><span></span><span></span><span></span></span>';
+                        textEl.innerHTML = '<span class="typing-name">eugen!</span> ' + T.typingSlow + ' <span class="typing-dots"><span></span><span></span><span></span></span>';
                     }
                 }
             }, 6000);
@@ -1379,7 +1454,7 @@
                     return '';
                 }
 
-                return date.toLocaleString('de-DE', {
+                return date.toLocaleString(T.dateLocale, {
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric',
@@ -1427,7 +1502,7 @@
             messageDiv.className = 'message user';
             const labelDiv = document.createElement('div');
             labelDiv.className = 'message-label';
-            labelDiv.textContent = 'Du';
+            labelDiv.textContent = T.labelUser;
             const bubbleDiv = document.createElement('div');
             bubbleDiv.className = 'message-bubble';
             bubbleDiv.textContent = message;
@@ -1456,7 +1531,7 @@
                     errLabel.textContent = 'eugen!';
                     const errBubble = document.createElement('div');
                     errBubble.className = 'message-bubble';
-                    errBubble.textContent = 'Entschuldigung, die Antwort dauert leider zu lange. Bitte versuche es erneut oder kontaktiere uns unter hallo@eugen.at.';
+                    errBubble.textContent = T.timeoutError;
                     const errRow = document.createElement('div');
                     errRow.className = 'bot-message-row';
                     errRow.innerHTML = createBotIconHTML();
@@ -1512,7 +1587,7 @@
                 errorDiv.className = 'message bot';
                 const errBubble = document.createElement('div');
                 errBubble.className = 'message-bubble';
-                errBubble.textContent = 'Fehler beim Senden. Bitte versuche es erneut.';
+                errBubble.textContent = T.sendError;
                 const errRow = document.createElement('div');
                 errRow.className = 'bot-message-row';
                 errRow.innerHTML = createBotIconHTML();
@@ -1563,7 +1638,7 @@
 
             const bubbleDiv = document.createElement('div');
             bubbleDiv.className = 'message-bubble';
-            bubbleDiv.textContent = 'Hallo! \u{1F44B} Ich bin eugen!, dein KI-Agent. Ich unterst\u00FCtze dich rund um die Uhr bei der Wohnungssuche, Besichtigungen und dem Anmietungsprozess.';
+            bubbleDiv.textContent = T.greeting;
 
             const timestampDiv = document.createElement('div');
             timestampDiv.className = 'message-timestamp';
@@ -1598,11 +1673,7 @@
             container.id = 'starter-buttons-container';
             container.className = 'starter-buttons';
 
-            const buttons = [
-                'Wohnung finden \u{1F3E0}\u{1F50D}',
-                'Besichtigung buchen \u{1F4C5}',
-                'Bewerbung f\u00FCr deine Traumwohnung \u{1F4CB}'
-            ];
+            const buttons = T.starters;
 
             buttons.forEach(text => {
                 const button = document.createElement('button');
@@ -1641,7 +1712,9 @@
         function notifyParentOfSize(isOpen, showBubble) {
             if (window.parent !== window) {
                 const isExpanded = widgetWindow.classList.contains('expanded');
-                let width = 100, height = 100;
+                // Collapsed-Grundgroesse 120x120 (muss zu embed.js passen): Button 60px
+                // + Offset 16px + gezaehmter Glow-Halo (8px) + Marge passen ohne Clip hinein.
+                let width = 120, height = 120;
                 if (isOpen) {
                     width = isExpanded ? 620 : 400;
                     height = isExpanded ? 900 : 650;
@@ -1650,7 +1723,7 @@
                     // Smaller on mobile to prevent overflow
                     const isMobile = window.innerWidth <= 480;
                     width = isMobile ? 280 : 360;
-                    height = 100;
+                    height = 120;
                 }
                 window.parent.postMessage({
                     type: 'eugen-chat-resize',
@@ -1734,10 +1807,10 @@
             // Update expand icon to collapse icon and vice versa
             if (isExpanded) {
                 expandButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
-                expandButton.setAttribute('aria-label', 'Chat verkleinern');
+                expandButton.setAttribute('aria-label', T.ariaCollapse);
             } else {
                 expandButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
-                expandButton.setAttribute('aria-label', 'Chat vergroessern');
+                expandButton.setAttribute('aria-label', T.ariaExpand);
             }
         });
 
