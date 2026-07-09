@@ -1,4 +1,7 @@
-document.addEventListener('DOMContentLoaded', function () {
+function initEugenWidget() {
+  // Doppelte Einbindung (z. B. Snippet in Header UND Footer) darf nicht zwei iframes erzeugen.
+  if (document.getElementById('eugen-chat-widget')) return;
+
   // Sprache der Host-Seite erkennen (eugen.immo nutzt WPML) und ans Widget weitergeben.
   function detectLang() {
     try {
@@ -114,4 +117,12 @@ document.addEventListener('DOMContentLoaded', function () {
       iframe.style.setProperty('right', isOpen ? '16px' : '0px', 'important');
     }
   });
-});
+}
+
+// Nicht blind an DOMContentLoaded haengen: Wird das Script async oder von einem Caching-Plugin
+// (WP Rocket & Co.) nachgeladen, ist das Event laengst gefeuert und das Widget erschiene nie.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initEugenWidget);
+} else {
+  initEugenWidget();
+}

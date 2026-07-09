@@ -78,18 +78,17 @@
             animation: none;
         }
 
+        /* Der Glow atmet nach LINKS (negativer x-Offset), denn nach rechts liegt der
+           Bildschirmrand — ein rundum expandierender Ring waere dort zur Haelfte unsichtbar.
+           Blur max. 18px + Offset 3px bleibt innerhalb der 26px Luft im 64px breiten iframe. */
         @keyframes pulseGlow {
-            0% {
-                box-shadow: -2px 0 12px rgba(20, 225, 167, 0.4),
-                            0 0 0 0 rgba(20, 225, 167, 0.55);
+            0%, 100% {
+                box-shadow: -2px 0 10px rgba(20, 225, 167, 0.35),
+                            0 0 0 0 rgba(20, 225, 167, 0.5);
             }
             50% {
-                box-shadow: -2px 0 12px rgba(20, 225, 167, 0.4),
-                            0 0 0 7px rgba(20, 225, 167, 0);
-            }
-            100% {
-                box-shadow: -2px 0 12px rgba(20, 225, 167, 0.4),
-                            0 0 0 0 rgba(20, 225, 167, 0.55);
+                box-shadow: -3px 0 18px rgba(20, 225, 167, 0.7),
+                            0 0 0 8px rgba(20, 225, 167, 0);
             }
         }
 
@@ -1742,6 +1741,7 @@
             if (widgetWindow.classList.contains('open')) {
                 // Close
                 widgetWindow.classList.remove('open');
+                widgetButton.classList.remove('pulsing-disabled');
                 // Bubble nach erstem Open NIE wieder zeigen (Session-ID existiert bereits)
                 setTimeout(() => notifyParentOfSize(false, false), 50);
                 if (idleGreetingTimer) {
@@ -1773,6 +1773,7 @@
         closeButton.addEventListener('click', () => {
             widgetWindow.classList.remove('open');
             widgetWindow.classList.remove('expanded');
+            widgetButton.classList.remove('pulsing-disabled');
             // Bubble nach erstem Open NIE wieder zeigen (Session-ID existiert bereits)
             setTimeout(() => notifyParentOfSize(false, false), 50);
             if (idleGreetingTimer) {
