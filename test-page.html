@@ -16,9 +16,11 @@
         .content { padding: 20px; }
         .content h1 { font-size: 22px; margin: 0 0 12px; }
         .filler { height: 1600px; background: linear-gradient(#f8f9fa, #e9ecef); padding: 20px; color: #888; }
-        /* Fixe Bottom-CTA-Leiste wie auf eugen.immo-Listenseiten (FILTERN / BESICHTIGUNG BUCHEN) */
-        .fixed-cta { position: fixed; bottom: 0; left: 0; right: 0; height: 56px; background: #10c896; color: #fff;
-                     display: flex; align-items: center; justify-content: center; font-weight: 700; letter-spacing: .5px; z-index: 500; }
+        /* Fixe Bottom-CTA-Leiste wie auf eugen.immo — dort NUR mobil sichtbar (FILTERN / BESICHTIGUNG BUCHEN).
+           Deshalb hier ebenfalls nur bei <=480px einblenden, sonst entsteht auf Desktop eine unrealistische Kollision. */
+        .fixed-cta { display: none; position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: #10c896; color: #fff;
+                     align-items: center; justify-content: center; font-weight: 700; letter-spacing: .5px; z-index: 500; }
+        @media (max-width: 480px) { .fixed-cta { display: flex; } }
         .langbar { position: fixed; top: 0; left: 0; right: 0; background: #222; color: #fff; font-size: 12px; padding: 6px 10px; z-index: 501; display: flex; gap: 10px; align-items: center; }
         .langbar a { color: #14E1A7; text-decoration: none; font-weight: 700; }
     </style>

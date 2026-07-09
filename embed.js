@@ -1,13 +1,10 @@
 document.addEventListener('DOMContentLoaded', function () {
   // Sprache der Host-Seite erkennen (eugen.immo nutzt WPML) und ans Widget weitergeben.
-  // Der iframe (Vercel) ist cross-origin und kann die Parent-Sprache NICHT selbst lesen,
-  // daher wird sie hier als ?lang=-Parameter in die iframe-URL übergeben.
   function detectLang() {
     try {
       var htmlLang = (document.documentElement.getAttribute('lang') || '').toLowerCase();
       if (htmlLang.indexOf('en') === 0) return 'en';
       if (htmlLang.indexOf('de') === 0) return 'de';
-      // Fallback: WPML-Pfadpraefix /en/
       if (/^\/en(\/|$)/i.test(location.pathname)) return 'en';
       return 'de';
     } catch (e) {
@@ -16,19 +13,21 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   var lang = detectLang();
 
-  // Kritische Layout-Properties mit !important, damit globales Host-CSS
-  // (WordPress-Themes setzen oft `iframe { max-width:100%; height:auto }`)
-  // den Widget-iframe NICHT verformen oder abschneiden kann.
+  // Der Trigger ist ein HALBKREIS-Tab, der buendig am RECHTEN Bildschirmrand klebt und
+  // VERTIKAL EXAKT ZENTRIERT sitzt (top:50% + translateY(-50%)) — auf Desktop UND Mobil gleich.
+  // Kritische Layout-Properties mit !important, damit Host-Theme-CSS (WordPress:
+  // "iframe { height:auto; max-width:100% }") den iframe nicht verformt/abschneidet.
   var style = document.createElement('style');
   style.textContent = [
     '#eugen-chat-widget {',
     '  position: fixed !important;',
-    '  bottom: 20px !important;',
-    '  right: 20px !important;',
-    '  top: auto !important;',
+    '  top: 50% !important;',
+    '  right: 0 !important;',
+    '  bottom: auto !important;',
     '  left: auto !important;',
-    '  width: 120px !important;',
-    '  height: 120px !important;',
+    '  transform: translateY(-50%) !important;',
+    '  width: 64px !important;',
+    '  height: 128px !important;',
     '  max-width: none !important;',
     '  max-height: none !important;',
     '  min-width: 0 !important;',
@@ -39,20 +38,16 @@ document.addEventListener('DOMContentLoaded', function () {
     '  border-radius: 0 !important;',
     '  box-shadow: none !important;',
     '  clip-path: none !important;',
-    '  transform: none !important;',
     '  z-index: 2147483647 !important;',
     '  background: transparent !important;',
-    '  transition: bottom 0.25s ease, right 0.25s ease, width 0.25s ease, height 0.25s ease;',
-    '}',
-    '@media (max-width: 480px) {',
-    '  #eugen-chat-widget {',
-    '    bottom: 90px !important;',
-    '    right: max(12px, env(safe-area-inset-right)) !important;',
-    '  }',
+    '  transition: width 0.25s ease, height 0.25s ease, right 0.25s ease;',
     '}',
     '#eugen-chat-widget.eugen-open-mobile {',
-    '  bottom: 0 !important;',
+    '  top: 0 !important;',
     '  right: 0 !important;',
+    '  bottom: 0 !important;',
+    '  left: auto !important;',
+    '  transform: none !important;',
     '  width: 100vw !important;',
     '  height: 100vh !important;',
     '  height: 100dvh !important;',
@@ -103,16 +98,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (isOpen && isMobile) {
       iframe.classList.add('eugen-open-mobile');
-      iframe.style.width = '';
-      iframe.style.height = '';
+      iframe.style.removeProperty('width');
+      iframe.style.removeProperty('height');
+      iframe.style.removeProperty('right');
       lockBodyScroll();
     } else {
       iframe.classList.remove('eugen-open-mobile');
       unlockBodyScroll();
-      // Inline mit !important, damit es das collapsed-CSS (width/height !important,
-      // das gegen Host-Theme-CSS schuetzt) beim Oeffnen/Bubble ueberschreiben kann.
+      // Inline mit !important, um das collapsed-CSS beim Oeffnen/Bubble zu ueberschreiben.
       iframe.style.setProperty('width', e.data.width + 'px', 'important');
       iframe.style.setProperty('height', e.data.height + 'px', 'important');
+      // Der Halbkreis-Tab klebt IMMER buendig am rechten Rand (right:0), damit die flache
+      // Kante genau am Bildschirmrand liegt (= halber Kreis). Nur der GEOEFFNETE Chat rueckt
+      // mit Abstand ein. Im Bubble-Zustand waechst der iframe nach LINKS, Tab bleibt am Rand.
+      iframe.style.setProperty('right', isOpen ? '16px' : '0px', 'important');
     }
   });
 });
