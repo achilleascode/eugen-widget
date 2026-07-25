@@ -38,6 +38,22 @@
             box-sizing: border-box;
         }
 
+        /* Design-Tokens.
+           Die drei --eugen-*-Werte beschreiben die Geometrie des runden Launchers und müssen zu
+           EUGEN_BOX in embed.js passen (LAUNCHER/HALO/OVERHANG): der Kreis ist 56 px groß, hat
+           oben/unten 20 px Halo für Glow und Badge und ragt 10 px über die rechte iframe-Kante
+           hinaus, wo er angeschnitten wird.
+           Die --r-*-Werte sind die Radien des runderen Designs. */
+        :root {
+            --eugen-halo: 20px;
+            --eugen-launcher: 56px;
+            --eugen-overhang: 10px;
+            --r-panel: 20px;
+            --r-bubble: 18px;
+            --r-tail: 6px;
+            --r-pill: 999px;
+        }
+
         html, body {
             width: 100%;
             height: 100%;
@@ -51,25 +67,31 @@
         }
 
         /* Chat Widget Button */
-        /* HALBKREIS-Tab: klebt buendig am rechten Rand (right:0), vertikal exakt zentriert.
-           border-radius nur links rund -> flache Kante rechts am Bildschirmrand = halber Kreis. */
+        /* RUNDER Launcher, vertikal exakt zentriert und am rechten Bildschirmrand leicht
+           ANGESCHNITTEN: Der iframe liegt mit right:0 genau auf dem Bildschirmrand, der Kreis
+           sitzt mit right:-10px (--eugen-overhang) darüber hinaus. Das overflow:hidden des
+           iframes kappt diesen Überstand, sichtbar bleiben ca. 46 von 56 px, ohne dass irgendein
+           Element den Viewport verlässt (kein horizontales Scrollen der Hostseite). Links vom
+           Kreis bleiben im 76 px breiten iframe 30 px frei, oben und unten je 20 px
+           (--eugen-halo) für Glow und Badge. */
         #chat-widget-button {
             position: absolute;
             top: 50%;
-            right: 0;
+            right: calc(var(--eugen-overhang) * -1);
             transform: translateY(-50%);
-            width: 38px;
-            height: 76px;
-            border-radius: 38px 0 0 38px;
+            width: var(--eugen-launcher);
+            height: var(--eugen-launcher);
+            border-radius: 50%;
             background: #14E1A7;
             border: none;
             cursor: pointer;
-            box-shadow: -2px 0 12px rgba(20, 225, 167, 0.45);
+            box-shadow: 0 0 12px rgba(20, 225, 167, 0.45),
+                        0 3px 10px rgba(0, 0, 0, 0.12);
             display: flex;
             align-items: center;
             justify-content: center;
-            padding-right: 3px;
-            transition: width 0.25s ease, box-shadow 0.3s ease;
+            padding: 0;
+            transition: transform 0.2s ease, box-shadow 0.3s ease, opacity 0.2s ease;
             z-index: 1000;
             animation: pulseGlow 2s ease-in-out infinite;
         }
@@ -78,25 +100,43 @@
             animation: none;
         }
 
-        /* Der Glow atmet nach LINKS (negativer x-Offset), denn nach rechts liegt der
-           Bildschirmrand — ein rundum expandierender Ring waere dort zur Haelfte unsichtbar.
-           Blur max. 18px + Offset 3px bleibt innerhalb der 26px Luft im 64px breiten iframe. */
+        /* Bei offenem Chat verschwindet der Launcher. Sonst stünde er als grüne Sichel rechts
+           neben dem Panel: Das Panel endet 20 px vor der iframe-Kante, der Kreis ragt 10 px
+           darüber hinaus. */
+        body.chat-open #chat-widget-button {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Der Glow atmet jetzt rundum symmetrisch (Offset 0), passend zum runden Launcher.
+           Harte Grenze: Blur ≤ 16 px und Ring-Spread ≤ 8 px, damit alles in die 20 px Halo
+           oben/unten passt (links sind es 30 px); nach rechts fällt der Glow ohnehin hinter den
+           Bildschirmrand. Der Erdungsschatten steht in BEIDEN Keyframe-Schritten, denn bei
+           unterschiedlich langen Schattenlisten springt die Animation statt zu interpolieren. */
         @keyframes pulseGlow {
             0%, 100% {
-                box-shadow: -2px 0 10px rgba(20, 225, 167, 0.35),
-                            0 0 0 0 rgba(20, 225, 167, 0.5);
+                box-shadow: 0 0 10px rgba(20, 225, 167, 0.35),
+                            0 0 0 0 rgba(20, 225, 167, 0.5),
+                            0 3px 10px rgba(0, 0, 0, 0.12);
             }
             50% {
-                box-shadow: -3px 0 18px rgba(20, 225, 167, 0.7),
-                            0 0 0 8px rgba(20, 225, 167, 0);
+                box-shadow: 0 0 16px rgba(20, 225, 167, 0.7),
+                            0 0 0 8px rgba(20, 225, 167, 0),
+                            0 3px 10px rgba(0, 0, 0, 0.12);
             }
         }
 
-        /* Notification Badge */
+        @media (prefers-reduced-motion: reduce) {
+            #chat-widget-button {
+                animation: none;
+            }
+        }
+
+        /* Notification Badge: sitzt oben LINKS am Kreis, weil rechts der Bildschirmrand liegt. */
         #notification-badge {
             position: absolute;
-            top: 6px;
-            left: -4px;
+            top: -2px;
+            left: -2px;
             width: 20px;
             height: 20px;
             background: #CF003D;
@@ -123,7 +163,7 @@
             background: white;
             color: #333;
             padding: 10px 16px;
-            border-radius: 20px;
+            border-radius: var(--r-bubble);
             font-size: 14px;
             font-family: 'Inter', sans-serif;
             font-weight: 500;
@@ -163,9 +203,12 @@
             pointer-events: none !important;
         }
 
+        /* translateY(-50%) MUSS im Hover-transform wiederholt werden, sonst verliert der Kreis
+           seine vertikale Zentrierung und springt beim Überfahren nach unten. */
         #chat-widget-button:hover {
-            width: 44px;
-            box-shadow: -3px 0 18px rgba(20, 225, 167, 0.65);
+            transform: translateY(-50%) scale(1.04);
+            box-shadow: 0 0 18px rgba(20, 225, 167, 0.65),
+                        0 3px 12px rgba(0, 0, 0, 0.18);
         }
 
         #chat-widget-button svg {
@@ -183,8 +226,10 @@
             height: 550px;
             max-height: calc(100vh - 120px);
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            border-radius: var(--r-panel);
+            /* Kurze Schattenreichweite: 32 px würden links komplett und rechts teilweise von der
+               iframe-Kante abgeschnitten und wirkten dort als harte Kante. */
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
             display: none;
             flex-direction: column;
             overflow: hidden;
@@ -365,7 +410,7 @@
             padding: 10px 14px;
             background: white;
             border: 1.5px solid #14E1A7;
-            border-radius: 20px;
+            border-radius: var(--r-pill);
             font-size: 13px;
             font-family: 'Inter', sans-serif;
             color: #000000;
@@ -435,7 +480,7 @@
 
         .message-bubble {
             padding: 12px 16px;
-            border-radius: 16px;
+            border-radius: var(--r-bubble);
             word-wrap: break-word;
             overflow-wrap: break-word;
             word-break: break-word;
@@ -480,20 +525,20 @@
         .message.user .message-bubble {
             background: #14E1A7;
             color: white;
-            border-bottom-right-radius: 4px;
+            border-bottom-right-radius: var(--r-tail);
         }
 
         .message.bot .message-bubble {
             background: rgba(20, 225, 167, 0.08);
             border: 1px solid rgba(20, 225, 167, 0.15);
-            border-bottom-left-radius: 4px;
+            border-bottom-left-radius: var(--r-tail);
             color: #000000;
         }
 
         .message.human .message-bubble {
             background: rgba(20, 225, 167, 0.12);
             border: 1px solid rgba(20, 225, 167, 0.25);
-            border-bottom-left-radius: 4px;
+            border-bottom-left-radius: var(--r-tail);
             color: #000000;
         }
 
@@ -660,49 +705,52 @@
             30% { transform: translateY(-6px); opacity: 1; }
         }
 
-        /* Mobile Responsive */
-        @media (max-width: 480px) {
-            #chat-widget-window {
-                width: calc(100vw - 20px);
-                height: calc(100vh - 100px);
-                bottom: 90px;
-                right: 10px;
-            }
+        /* Mobile Responsive.
+           Eine Breiten-Query wäre hier falsch: Dieses Dokument läuft im iframe, @media misst
+           also die IFRAME-Breite, nicht das Gerät. Die ist collapsed 76 px, mit Bubble
+           340 px und offen 400 px, mithin immer <= 480. Ein @media (max-width:480px) wäre auf
+           dem Desktop dauerhaft aktiv. Ob der Nutzer mobil ist, weiß nur der Host: embed.js
+           schickt eugen-host-state und setzt damit body.host-mobile. */
+        body.host-mobile #chat-widget-window {
+            width: calc(100vw - 20px);
+            height: calc(100vh - 100px);
+            bottom: 90px;
+            right: 10px;
+        }
 
-            #chat-widget-window.expanded {
-                width: 100vw;
-                height: 100vh;
-                bottom: 0;
-                right: 0;
-                max-height: none;
-                border-radius: 0;
-            }
+        body.host-mobile #chat-widget-window.expanded {
+            width: 100vw;
+            height: 100vh;
+            bottom: 0;
+            right: 0;
+            max-height: none;
+            border-radius: 0;
+        }
 
-            #chat-close-button {
-                width: 36px;
-                height: 36px;
-            }
+        body.host-mobile #chat-close-button {
+            width: 36px;
+            height: 36px;
+        }
 
-            #chat-close-button svg {
-                width: 22px;
-                height: 22px;
-            }
+        body.host-mobile #chat-close-button svg {
+            width: 22px;
+            height: 22px;
+        }
 
-            /* Mobile: kompakte Help-Bubble (vertikale Position via Basis top:50%) */
-            .chat-help-bubble {
-                right: 48px;
-                padding: 7px 12px;
-                font-size: 12px;
-                border-radius: 16px;
-                max-width: 150px;
-                white-space: normal;
-            }
+        /* Mobil: kompakte Help-Bubble (vertikale Position via Basis top:50%) */
+        body.host-mobile .chat-help-bubble {
+            right: 48px;
+            padding: 7px 12px;
+            font-size: 12px;
+            border-radius: 16px;
+            max-width: 150px;
+            white-space: normal;
         }
     </style>
 </head>
 <body>
     <!-- Chat Widget Button -->
-    <button id="chat-widget-button" aria-label="Chat oeffnen">
+    <button id="chat-widget-button" aria-label="Chat öffnen">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" fill="none">
             <rect x="10" y="2.5" width="8" height="14" rx="4" fill="white"/>
             <circle cx="14" cy="16" r="3" fill="#CF003D"/>
@@ -736,7 +784,7 @@
                 </div>
             </div>
             <div class="header-right">
-                <button id="chat-expand-button" class="header-btn" aria-label="Chat vergroessern">
+                <button id="chat-expand-button" class="header-btn" aria-label="Chat vergrößern">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <polyline points="15 3 21 3 21 9"></polyline>
                         <polyline points="9 21 3 21 3 15"></polyline>
@@ -744,7 +792,7 @@
                         <line x1="3" y1="21" x2="10" y2="14"></line>
                     </svg>
                 </button>
-                <button id="chat-close-button" class="header-btn" aria-label="Chat schliessen">
+                <button id="chat-close-button" class="header-btn" aria-label="Chat schließen">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -886,16 +934,22 @@
             }
         }, { passive: false });
 
-        // Help bubble: expand iframe first, then fade in bubble
-        // Check parent viewport width to decide if mobile (bubble hidden on mobile)
-        let isParentMobile = false;
-        try {
-            isParentMobile = window.parent !== window
-                ? window.parent.innerWidth <= 480
-                : window.innerWidth <= 480;
-        } catch (e) {
-            // Cross-origin: fall back to own viewport
-            isParentMobile = window.innerWidth <= 480;
+        // Host-Zustand vom Parent übernehmen: Nur embed.js kennt die echte Viewport-Breite
+        // (window.innerWidth ist hier die iframe-Breite, window.parent.innerWidth wirft
+        // cross-origin). body.host-mobile schaltet die Mobil-Regeln im CSS.
+        // Keine Origin-Whitelist: Der Parent ist eine beliebige Kundendomain.
+        window.addEventListener('message', (event) => {
+            const data = event.data;
+            if (!data || typeof data !== 'object' || data.type !== 'eugen-host-state') return;
+            document.body.classList.toggle('host-mobile', !!data.isMobile);
+        });
+
+        // Zustand aktiv anfordern, sobald der Listener steht. Der Host sendet zwar auch von
+        // selbst (bei load und bei jeder Box-Änderung), aber die Teaser-Bubble erscheint nach
+        // festem 1500-ms-Timer: Käme die Host-Meldung später, würde sie mit nowrap statt
+        // kompakt rendern und abgeschnitten wirken.
+        if (window.parent !== window) {
+            window.parent.postMessage({ type: 'eugen-request-host-state' }, '*');
         }
 
         // Help-Bubble nur beim allerersten Besuch zeigen (vor erstem Chat-Open).
@@ -1710,27 +1764,35 @@
             }
         }
 
-        // Notify parent window of size change
+        // Legacy-Boxmaße, müssen zu EUGEN_BOX in embed.js passen. Die aktuelle embed.js rechnet
+        // die iframe-Größe selbst aus dieser Tabelle; mitgeschickt werden die Werte nur, damit
+        // eine im WordPress-Cache hängende ALTE embed.js weiter plausibel positioniert.
+        const LEGACY_BOX = {
+            collapsed: { w: 76, h: 96 },
+            bubble: { w: 340, h: 96 },
+            open: { w: 400, h: 650 },
+            expanded: { w: 620, h: 900 }
+        };
+
+        // Zustand an den Parent melden (er entscheidet daraus die iframe-Box). Die Mobil-/Desktop-
+        // Unterscheidung der Bubble-Breite liegt in embed.js: Hier wäre window.innerWidth die
+        // iframe-Breite und damit nutzlos.
         function notifyParentOfSize(isOpen, showBubble) {
             if (window.parent !== window) {
                 const isExpanded = widgetWindow.classList.contains('expanded');
-                // Collapsed = schmaler iframe, nur fuer den Halbkreis-Tab + Glow (muss zu embed.js passen).
-                let width = 64, height = 128;
+                let box = LEGACY_BOX.collapsed;
                 if (isOpen) {
-                    width = isExpanded ? 620 : 400;
-                    height = isExpanded ? 900 : 650;
+                    box = isExpanded ? LEGACY_BOX.expanded : LEGACY_BOX.open;
                 } else if (showBubble) {
-                    // Bubble erscheint links vom Tab -> iframe verbreitern
-                    const isMobile = window.innerWidth <= 480;
-                    width = isMobile ? 260 : 340;
-                    height = 128;
+                    box = LEGACY_BOX.bubble;
                 }
                 window.parent.postMessage({
                     type: 'eugen-chat-resize',
                     isOpen: isOpen,
                     showBubble: !!showBubble,
-                    width: width,
-                    height: height
+                    expanded: isExpanded,
+                    width: box.w,
+                    height: box.h
                 }, '*');
             }
         }
@@ -1742,6 +1804,7 @@
                 // Close
                 widgetWindow.classList.remove('open');
                 widgetButton.classList.remove('pulsing-disabled');
+                document.body.classList.remove('chat-open');
                 // Bubble nach erstem Open NIE wieder zeigen (Session-ID existiert bereits)
                 setTimeout(() => notifyParentOfSize(false, false), 50);
                 if (idleGreetingTimer) {
@@ -1760,6 +1823,8 @@
                     widgetWindow.classList.add('open');
                     notificationBadge.classList.remove('show');
                     widgetButton.classList.add('pulsing-disabled');
+                    // Launcher ausblenden, solange das Panel offen ist (sonst grüne Sichel daneben)
+                    document.body.classList.add('chat-open');
                     // Window is now visible — safe to scroll
                     requestAnimationFrame(() => {
                         scrollToLastMessage(false);
@@ -1774,6 +1839,7 @@
             widgetWindow.classList.remove('open');
             widgetWindow.classList.remove('expanded');
             widgetButton.classList.remove('pulsing-disabled');
+            document.body.classList.remove('chat-open');
             // Bubble nach erstem Open NIE wieder zeigen (Session-ID existiert bereits)
             setTimeout(() => notifyParentOfSize(false, false), 50);
             if (idleGreetingTimer) {
@@ -1794,6 +1860,7 @@
                         widgetWindow.classList.add('open');
                         notificationBadge.classList.remove('show');
                         widgetButton.classList.add('pulsing-disabled');
+                        document.body.classList.add('chat-open');
                         // Window is now visible — safe to scroll
                         requestAnimationFrame(() => {
                             scrollToLastMessage(false);

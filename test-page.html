@@ -64,6 +64,23 @@
                 }
             }
             repoint();
+
+            // DEBUG-Overlay (?debug=1): iframe-Geometrie nach 3 s ausgeben. Zeigt sofort, ob
+            // Host-Theme-CSS die Box verformt hat oder die Zentrierung verrutscht ist.
+            if (new URLSearchParams(location.search).get('debug') === '1') {
+                setTimeout(function () {
+                    var f = document.getElementById('eugen-chat-widget');
+                    if (!f) return;
+                    var r = f.getBoundingClientRect(), cs = getComputedStyle(f);
+                    var d = document.createElement('pre');
+                    d.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#000;color:#0f0;font-size:13px;line-height:1.5;z-index:2147483646;padding:8px;margin:0;white-space:pre-wrap;';
+                    d.textContent = 'DEBUG innerW=' + window.innerWidth + ' innerH=' + window.innerHeight +
+                        '\nrect x=' + Math.round(r.x) + ' y=' + Math.round(r.y) + ' w=' + Math.round(r.width) + ' h=' + Math.round(r.height) +
+                        '\ncss top=' + cs.top + ' right=' + cs.right + ' w=' + cs.width + ' h=' + cs.height +
+                        '\ntransform=' + cs.transform + ' display=' + cs.display + ' vis=' + cs.visibility;
+                    document.body.appendChild(d);
+                }, 3000);
+            }
         })();
     </script>
 </body>
