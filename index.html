@@ -217,14 +217,24 @@
             fill: white;
         }
 
-        /* Chat Window */
+        /* Chat Window.
+           Die Größe ist IMMER relativ zur iframe-Box, nie in vh/vw: Dieses Dokument läuft im
+           iframe, dort messen vh/vw dessen Kanten und nicht den Bildschirm — dieselbe Falle wie
+           bei @media (siehe Kommentar über den Mobil-Regeln), nur bei den Maßen lange übersehen.
+           Die echten Pixel setzt embed.js über EUGEN_BOX, das Panel füllt die Box nur noch aus:
+           offen ist der iframe 400x650, abzüglich right:20 und bottom:90 plus 10 px Luft oben
+           ergibt das die bisherigen 380x550. Deckelt embed.js die Box auf niedrigen Viewports
+           (innerHeight-24), schrumpft das Panel jetzt mit, statt unten herauszuragen. Das
+           frühere max-height:calc(100vh-120px) war doppelt falsch: Es maß den iframe und
+           kappte die 550 px im Normalfall auf 530.
+           Kein width/height in der transition: Der iframe animiert seine Box bereits (0.25s),
+           eine zweite Animation auf dieselbe Größe zieht sichtbar nach. */
         #chat-widget-window {
             position: absolute;
             bottom: 90px;
             right: 20px;
-            width: 380px;
-            height: 550px;
-            max-height: calc(100vh - 120px);
+            width: calc(100% - 20px);
+            height: calc(100% - 100px);
             background: white;
             border-radius: var(--r-panel);
             /* Kurze Schattenreichweite: 32 px würden links komplett und rechts teilweise von der
@@ -235,7 +245,7 @@
             overflow: hidden;
             z-index: 1001;
             animation: slideUp 0.3s ease;
-            transition: width 0.3s ease, height 0.3s ease, bottom 0.3s ease, right 0.3s ease, border-radius 0.3s ease;
+            transition: bottom 0.3s ease, right 0.3s ease, border-radius 0.3s ease;
         }
 
         #chat-widget-window.open {
@@ -358,11 +368,15 @@
             height: 20px;
         }
 
-        /* Expanded State */
+        /* Expanded State. Die früheren 85vh/90vh waren die Ursache des "verzerrten" Chats: vh ist
+           hier die IFRAME-Höhe, das Panel bekam also nur 85 % der Box, statt sie zu füllen. Beim
+           Vergrößern wächst der iframe auf 620 px Breite, das Panel blieb dabei fast so flach wie
+           vorher (380x550 -> 600x575 bei 700 px Fensterhöhe) und wirkte breitgedrückt; auf
+           kurzen Viewports wurde es sogar flacher als im normalen Zustand.
+           Eine eigene Breite braucht es nicht: right:20px ist konstant, die Breite folgt über
+           calc(100% - 20px) aus der Basisregel automatisch der breiteren iframe-Box. */
         #chat-widget-window.expanded {
-            width: 600px;
-            height: 85vh;
-            max-height: 90vh;
+            height: calc(100% - 40px);
             bottom: 20px;
         }
 
@@ -711,19 +725,21 @@
            340 px und offen 400 px, mithin immer <= 480. Ein @media (max-width:480px) wäre auf
            dem Desktop dauerhaft aktiv. Ob der Nutzer mobil ist, weiß nur der Host: embed.js
            schickt eugen-host-state und setzt damit body.host-mobile. */
+        /* Auch hier Prozent statt vw/vh. Mobil deckt der iframe zwar den ganzen Viewport ab, die
+           beiden Einheiten wären also zufällig gleich — der Bezug bleibt aber die iframe-Box, und
+           genau diese Verwechslung hat den Expand-Zustand kaputtgemacht. */
         body.host-mobile #chat-widget-window {
-            width: calc(100vw - 20px);
-            height: calc(100vh - 100px);
+            width: calc(100% - 20px);
+            height: calc(100% - 100px);
             bottom: 90px;
             right: 10px;
         }
 
         body.host-mobile #chat-widget-window.expanded {
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             bottom: 0;
             right: 0;
-            max-height: none;
             border-radius: 0;
         }
 
