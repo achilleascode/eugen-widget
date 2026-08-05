@@ -1780,14 +1780,22 @@
             }
         }
 
-        // Legacy-Boxmaße, müssen zu EUGEN_BOX in embed.js passen. Die aktuelle embed.js rechnet
-        // die iframe-Größe selbst aus dieser Tabelle; mitgeschickt werden die Werte nur, damit
-        // eine im WordPress-Cache hängende ALTE embed.js weiter plausibel positioniert.
+        // Legacy-Boxmaße für Loader, die die iframe-Größe aus dieser Meldung übernehmen, statt
+        // sie wie die aktuelle embed.js selbst aus EUGEN_BOX zu rechnen. Von hier liest die
+        // aktuelle embed.js NUR die Breite (Fallback-Erkennung "expanded" über w >= 600), die
+        // Höhe ignoriert sie vollständig.
+        // expanded meldet deshalb bewusst 650 statt der echten 900 aus EUGEN_BOX: Alte Loader
+        // setzen den Wert ungedeckelt bei bottom:0, 900 px ragen damit auf den meisten
+        // Bildschirmen oben heraus und schneiden den Chat-Header samt Schließen-Button ab
+        // (gemessen bei 623 px Viewport: 257 px außerhalb). 650 entspricht der offenen Höhe und
+        // passt praktisch überall; der vergrößerte Chat wird bei solchen Loadern dann nur
+        // breiter statt auch höher — sichtbar schlechter als mit aktueller embed.js, aber
+        // bedienbar. Betrifft aktuell eugen.immo, das per GTM-Inline-Tag lädt.
         const LEGACY_BOX = {
             collapsed: { w: 76, h: 96 },
             bubble: { w: 340, h: 96 },
             open: { w: 400, h: 650 },
-            expanded: { w: 620, h: 900 }
+            expanded: { w: 620, h: 650 }
         };
 
         // Zustand an den Parent melden (er entscheidet daraus die iframe-Box). Die Mobil-/Desktop-
